@@ -17,6 +17,7 @@ Needed:
     -Only way an unrendered array becomes rendered is if neighbor array has alive cells on colliding edge
       -Can be explored further and only colliding row/column is checked for alive cells, if 0 alive, array doesn't become active.
       -Cells in corners of array have neihbors in three different arrays!
+      -Each cell could have an array of indices where recides each neighbor cell of last round's alive cells.
    
   4. Import Life 1.05 files into the program
       -Also saving these files from user input could be a fun thing
