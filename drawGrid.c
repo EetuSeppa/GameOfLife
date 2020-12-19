@@ -10,13 +10,22 @@
 #define INITIAL_GRID_WIDTH 15
 void drawGrid () {		
 
-	int lineDistance, i, drawnPosX, drawnPosY, worldPosX, worldPosY, mouseRClickX, mouseRClickY, rectPosX, rectPosY;
+	Chunk renderedChunks[50];
+	renderedChunks[0].coord[0] = 0;
+	renderedChunks[0].coord[1] = 0;
+
+	renderedChunks[0].cells[0][0].alive = 1;
+	renderedChunks[0].cells[49][0].alive = 1;
+	renderedChunks[0].cells[1][1].alive = 1;
+	renderedChunks[0].cells[49][49].alive = 1;
+	renderedChunks[0].cells[1][49].alive = 1;
+
+	int lineDistance, i, j, k, drawnPosX, drawnPosY, worldPosX, worldPosY, mouseRClickX, mouseRClickY, rectPosX, rectPosY;
 	int initMouseX, initMouseY, mouseOffsetX, mouseOffsetY, prevMouseOffsetX, prevMouseOffsetY;
-	int insert;
+	int insert, insertIndexOfArrayX, insertIndexOfArrayY, insertIndexOfCellX, insertIndexOfCellY;
 	double zoom;
 	lineDistance = INITIAL_GRID_WIDTH;
 
-	//Lisää paneroitujen koordinaattien muuttaminen näytölle
 	InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Game Of Life");
 
 	SetTargetFPS(60);
@@ -47,11 +56,10 @@ void drawGrid () {
 
 		BeginDrawing();
 			//Rectangles for testing
-			/*
-			DrawRectangle(worldPosX, worldPosY, lineDistance, lineDistance, GRAY);
-			DrawRectangle(worldPosX + lineDistance * 2, worldPosY + lineDistance * 2, lineDistance, lineDistance, GRAY);
-			DrawRectangle(worldPosX + lineDistance * 10, worldPosY + lineDistance * 10, lineDistance, lineDistance, GRAY);
-			*/
+//			DrawRectangle(worldPosX, worldPosY, lineDistance, lineDistance, GRAY);
+			
+		//	DrawRectangle(worldPosX + lineDistance * 2, worldPosY + lineDistance * 2, lineDistance, lineDistance, GRAY);
+			//DrawRectangle(worldPosX + lineDistance * 10, worldPosY + lineDistance * 10, lineDistance, lineDistance, GRAY);
 			
 			ClearBackground(RAYWHITE);
 			worldPosX += mouseOffsetX - prevMouseOffsetX;
@@ -77,16 +85,33 @@ void drawGrid () {
 				drawnPosY += lineDistance;
 				
 			}
+			if (IsKeyPressed(32)){
+				insert = 0;
+			}
 			if (insert) {
 				if(IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
 					mouseRClickX = GetMouseX();
 					mouseRClickY = GetMouseY();
-							
+						
+					//Used for finding index of clicked array
+					insertIndexOfArrayX = ((mouseRClickX + worldPosX) / lineDistance) / ARR_SIZE;
+					insertIndexOfArrayY = ((mouseRClickY + worldPosY) / lineDistance) / ARR_SIZE;
+
+					insertIndexOfCellX = (mouseRClickX - worldPosX) / lineDistance;
+					insertIndexOfCellY = (mouseRClickY - worldPosY) / lineDistance;
+
+					renderedChunks[0].cells[insertIndexOfCellY][insertIndexOfCellX].alive = !renderedChunks[0].cells[insertIndexOfCellY][insertIndexOfCellX].alive;
 				}
-			} else {
-
-
 			}
+				for (i = 0; i < ARR_SIZE; ++i) {
+					for (j = 0; j < ARR_SIZE; ++j) {
+						if(renderedChunks[0].cells[i][j].alive) {
+							//TODO: only render if coords are inside screen
+							DrawRectangle(worldPosX + j * lineDistance, worldPosY + i * lineDistance, lineDistance, lineDistance, GRAY);
+
+					 	}
+					}
+				}
 		EndDrawing();
 	}
 }
