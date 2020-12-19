@@ -3,10 +3,18 @@
 
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 700
+#define INITIAL_GRID_WIDTH 15
 void drawGrid (void) {		
+
+	//Load font
+	Font GetFontDefault();
 	int lineDistance, i, drawnPosX, drawnPosY, worldPosX, worldPosY;
 	int initMouseX, initMouseY, mouseOffsetX, mouseOffsetY, prevMouseOffsetX, prevMouseOffsetY;
-	lineDistance = 10;
+	int screenWidth, screenHeight;
+	screenWidth = SCREEN_WIDTH;
+	screenHeight = SCREEN_HEIGHT;
+	double zoom;
+	lineDistance = INITIAL_GRID_WIDTH;
 
 	//Lisää paneroitujen koordinaattien muuttaminen näytölle
 	InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Game Of Life");
@@ -14,6 +22,7 @@ void drawGrid (void) {
 	mouseOffsetX = mouseOffsetY = 0;
 	worldPosX = worldPosY = 0;
 	prevMouseOffsetX = prevMouseOffsetY = 0;
+	zoom = 1.000;
 	while (!WindowShouldClose()) {
 		
 		//Get mouse movements while pressed
@@ -34,20 +43,35 @@ void drawGrid (void) {
 			//prevMouseOffsetY = 0;
 		}
 		
+		zoom = GetMouseWheelMove();
+		lineDistance -= (int)zoom;
+		/*
+		screenWidth *= lineDistance / INITIAL_GRID_WIDTH;
+		screenHeight *= lineDistance / INITIAL_GRID_WIDTH;
+		*/
+
 		BeginDrawing();
+			//Rectangle for testing
+			DrawRectangle(worldPosX, worldPosY, lineDistance, lineDistance, GRAY);
+
 			ClearBackground(RAYWHITE);
 			drawnPosY = drawnPosX = 0;
 			worldPosX += mouseOffsetX - prevMouseOffsetX;
 			worldPosY += mouseOffsetY - prevMouseOffsetY;
-			for (drawnPosX = 0;  drawnPosX < SCREEN_WIDTH - 1; drawnPosX += lineDistance) {
-				if (drawnPosX <= SCREEN_WIDTH) {
+
+			//TODO: Declare screen width as a variable that is edited by zoom
+			//TODO: Create effect of infinite world
+			while (drawnPosX < worldPosX + screenWidth) {
+				if (drawnPosX <= screenWidth) {
 					DrawLine(worldPosX + drawnPosX, worldPosY, worldPosX + drawnPosX, SCREEN_HEIGHT + worldPosY, GRAY);
 				}
-				if (drawnPosY <= SCREEN_HEIGHT) {
+				if (drawnPosY <= screenHeight) {
 					DrawLine(worldPosX, worldPosY + drawnPosY, SCREEN_WIDTH  + worldPosX, worldPosY + drawnPosY, GRAY);
 				}
 	
+				drawnPosX += lineDistance;
 				drawnPosY += lineDistance;
+				
 			}
 		EndDrawing();
 	}
