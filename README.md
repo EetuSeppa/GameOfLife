@@ -5,6 +5,7 @@ Needed:
   1. Draw grid to screen with raylib.
     -Implement zooming and panning
         -https://www.youtube.com/watch?v=ZQ8qtAizis4&ab_channel=javidx9
+	-How to give illusion of endless grid?
   
   2. Fix 2D arrays to grig.
     -Implement indexing for arays
