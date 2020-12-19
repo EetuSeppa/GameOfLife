@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "raylib.h"
+#include <stdlib.h>
 
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 700
@@ -10,9 +11,6 @@ void drawGrid (void) {
 	Font GetFontDefault();
 	int lineDistance, i, drawnPosX, drawnPosY, worldPosX, worldPosY;
 	int initMouseX, initMouseY, mouseOffsetX, mouseOffsetY, prevMouseOffsetX, prevMouseOffsetY;
-	int screenWidth, screenHeight;
-	screenWidth = SCREEN_WIDTH;
-	screenHeight = SCREEN_HEIGHT;
 	double zoom;
 	lineDistance = INITIAL_GRID_WIDTH;
 
@@ -25,9 +23,6 @@ void drawGrid (void) {
 	zoom = 1.000;
 	while (!WindowShouldClose()) {
 		
-		//Get mouse movements while pressed
-		//TODO: Implement position in wolrd 
-		//TODO: Implement zooming
 		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
 			initMouseX = GetMouseX() - worldPosX;
 			initMouseY = GetMouseY() - worldPosY;
@@ -39,34 +34,35 @@ void drawGrid (void) {
 			mouseOffsetY = GetMouseY() - initMouseY;
 		}
 		if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
-			//prevMouseOffsetX = 0;
-			//prevMouseOffsetY = 0;
+
 		}
 		
 		zoom = GetMouseWheelMove();
 		lineDistance -= (int)zoom;
-		/*
-		screenWidth *= lineDistance / INITIAL_GRID_WIDTH;
-		screenHeight *= lineDistance / INITIAL_GRID_WIDTH;
-		*/
 
 		BeginDrawing();
-			//Rectangle for testing
+			//Rectangles for testing
 			DrawRectangle(worldPosX, worldPosY, lineDistance, lineDistance, GRAY);
-
+			DrawRectangle(worldPosX + lineDistance * 2, worldPosY + lineDistance * 2, lineDistance, lineDistance, GRAY);
+			
 			ClearBackground(RAYWHITE);
-			drawnPosY = drawnPosX = 0;
 			worldPosX += mouseOffsetX - prevMouseOffsetX;
 			worldPosY += mouseOffsetY - prevMouseOffsetY;
 
-			//TODO: Declare screen width as a variable that is edited by zoom
-			//TODO: Create effect of infinite world
-			while (drawnPosX < worldPosX + screenWidth) {
-				if (drawnPosX <= screenWidth) {
-					DrawLine(worldPosX + drawnPosX, worldPosY, worldPosX + drawnPosX, SCREEN_HEIGHT + worldPosY, GRAY);
+
+			drawnPosY = worldPosY % lineDistance;
+			drawnPosX = worldPosX % lineDistance; 
+			
+			int drawnLinesX = 0;
+			int drawnLinesY = 0;
+			while (drawnPosX < SCREEN_WIDTH) {
+				if (drawnPosX <= SCREEN_WIDTH) {
+					DrawLine(drawnPosX, 0, drawnPosX, SCREEN_HEIGHT, GRAY);
+					++drawnLinesX;
 				}
-				if (drawnPosY <= screenHeight) {
-					DrawLine(worldPosX, worldPosY + drawnPosY, SCREEN_WIDTH  + worldPosX, worldPosY + drawnPosY, GRAY);
+				if (drawnPosY <= SCREEN_HEIGHT) {
+					DrawLine(0, drawnPosY, SCREEN_WIDTH, drawnPosY, GRAY);
+					++drawnLinesY;
 				}
 	
 				drawnPosX += lineDistance;
