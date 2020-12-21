@@ -46,8 +46,6 @@ void printInfo (Chunk chunk) {
 
 }
 void initialTestedCells (Chunk * chunk) {
-	printf("Initial...\n");
-	printInfo(*chunk);
 	int i, x, y, cellIndex; 
 	int searchArr[2];
 	cellIndex = chunk->cellsToTestCount;
@@ -124,7 +122,7 @@ void cellAliveState (Chunk * chunk) {
 			}
 		}
 	}
-	printInfo(*chunk);
+	//printInfo(*chunk);
 	copyArray(chunk, tempArray);
 	chunk->cellsToTestCount = tempArrayIndex;
 }

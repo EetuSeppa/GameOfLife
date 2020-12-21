@@ -2,8 +2,16 @@
 	TODO:
 
 	-If alive cell "collides" with corner or edge of array, start checking in next array.
-	-Implement smart checking of cells inside each array.
+		-If collision in edges happens, check if array is alive yet, if not malloc space for array and insert edge cells to cellsToCheck of new array. If array is already rendered, just do the latter.  	
+			-Needs logic for finding correct index of colliding array
+
+	SHOULD DO THIS FIRST
 	-Implement placing of cells into other arrays besides center array.
+		-Needs functionality for allocating memory for new arrays and giving arrays correct coordinates
+		-Needed also: testing alive conditions of multiple arrays
+
+	-v Implement smart checking of cells inside each array.
+		-Needs faster algorithm for searching. (Is searching really needed?)
 
 */
 #include <stdio.h>
@@ -95,8 +103,15 @@ void drawGrid () {
 					mouseRClickY = GetMouseY();
 						
 					//Used for finding index of clicked array
-					insertIndexOfArrayX = ((mouseRClickX + worldPosX) / lineDistance) / ARR_SIZE;
-					insertIndexOfArrayY = ((mouseRClickY + worldPosY) / lineDistance) / ARR_SIZE;
+					insertIndexOfArrayX = ((mouseRClickX - worldPosX) / lineDistance) / ARR_SIZE;
+					insertIndexOfArrayY = ((mouseRClickY - worldPosY) / lineDistance) / ARR_SIZE;
+
+					if (mouseRClickX - worldPosX < 0)
+						--insertIndexOfArrayX;
+					if (mouseRClickY - worldPosY < 0)
+						--insertIndexOfArrayY;
+						
+					//printf("X: %d, Y: %d\n", insertIndexOfArrayX, insertIndexOfArrayY);
 
 					insertIndexOfCellX = (mouseRClickX - worldPosX) / lineDistance;
 					insertIndexOfCellY = (mouseRClickY - worldPosY) / lineDistance;
