@@ -8,21 +8,16 @@
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 700
 #define INITIAL_GRID_WIDTH 15
+#define CHUNK_UPDATE_RATE 50
 void drawGrid () {		
 
 	Chunk renderedChunks[50];
 	renderedChunks[0].coord[0] = 0;
 	renderedChunks[0].coord[1] = 0;
 
-	renderedChunks[0].cells[0][0].alive = 1;
-	renderedChunks[0].cells[49][0].alive = 1;
-	renderedChunks[0].cells[1][1].alive = 1;
-	renderedChunks[0].cells[49][49].alive = 1;
-	renderedChunks[0].cells[1][49].alive = 1;
-
 	int lineDistance, i, j, k, drawnPosX, drawnPosY, worldPosX, worldPosY, mouseRClickX, mouseRClickY, rectPosX, rectPosY;
 	int initMouseX, initMouseY, mouseOffsetX, mouseOffsetY, prevMouseOffsetX, prevMouseOffsetY;
-	int insert, insertIndexOfArrayX, insertIndexOfArrayY, insertIndexOfCellX, insertIndexOfCellY;
+	int insert, insertIndexOfArrayX, insertIndexOfArrayY, insertIndexOfCellX, insertIndexOfCellY, frameCounter;
 	double zoom;
 	lineDistance = INITIAL_GRID_WIDTH;
 
@@ -34,6 +29,7 @@ void drawGrid () {
 	worldPosX = worldPosY = 0;
 	prevMouseOffsetX = prevMouseOffsetY = 0;
 	zoom = 1.000;
+	frameCounter = CHUNK_UPDATE_RATE;
 	while (!WindowShouldClose()) {
 		
 		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
@@ -101,6 +97,19 @@ void drawGrid () {
 					insertIndexOfCellY = (mouseRClickY - worldPosY) / lineDistance;
 
 					renderedChunks[0].cells[insertIndexOfCellY][insertIndexOfCellX].alive = !renderedChunks[0].cells[insertIndexOfCellY][insertIndexOfCellX].alive;
+				}
+			} else {
+				
+				if (frameCounter == CHUNK_UPDATE_RATE) {
+					testAliveNeighbors(&renderedChunks[0]);
+					putchar('\n');
+					cellAliveState(&renderedChunks[0]);
+					--frameCounter;
+				} else {
+					--frameCounter;
+					if (frameCounter <= 0) {
+						frameCounter = CHUNK_UPDATE_RATE;
+					}
 				}
 			}
 				for (i = 0; i < ARR_SIZE; ++i) {

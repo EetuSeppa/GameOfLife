@@ -1,5 +1,5 @@
 #include <stdio.h>
-#define ARR_SIZE 50
+#define ARR_SIZE 100
 
 typedef struct cell {
 	//1 for alive, 0 for dead
@@ -17,19 +17,23 @@ typedef struct chunk {
 	int coord[2];
 } Chunk;
 
-void testAliveNeigbors (Chunk * chunk) {
+void testAliveNeighbors (Chunk * chunk) {
 	int i, j, x, y, alive;
 	for (i = 0; i < ARR_SIZE; ++i) {
 		for (j = 0; j < ARR_SIZE; ++j) {
 			alive = 0;
 			for (x = -1; x < 2; x++) {
 				for (y = -1; y < 2; y++) {
-					if (chunk->cells[i][j].alive) {
-						++alive;		
+					//Temporary fix to array edges
+					if (i != 0 && j != 0) {
+						if (chunk->cells[i + y][j + x].alive) {
+							++alive;		
+						}
 					}
 				}
 			}
-			--alive;
+			if (chunk->cells[i][j].alive)
+				--alive;
 			chunk->cells[i][j].aliveNeighbors = alive;			
 		}
 	}
