@@ -1,5 +1,11 @@
-//TODO: Right click places cell to array
-	//Alive cells from array are drawn to screen
+/*
+	TODO:
+
+	-If alive cell "collides" with corner or edge of array, start checking in next array.
+	-Implement smart checking of cells inside each array.
+	-Implement placing of cells into other arrays besides center array.
+
+*/
 #include <stdio.h>
 #include "raylib.h"
 #include <stdlib.h>
@@ -14,10 +20,11 @@ void drawGrid () {
 	Chunk renderedChunks[50];
 	renderedChunks[0].coord[0] = 0;
 	renderedChunks[0].coord[1] = 0;
+	renderedChunks[0].cellsToTestCount = 0;
 
 	int lineDistance, i, j, k, drawnPosX, drawnPosY, worldPosX, worldPosY, mouseRClickX, mouseRClickY, rectPosX, rectPosY;
 	int initMouseX, initMouseY, mouseOffsetX, mouseOffsetY, prevMouseOffsetX, prevMouseOffsetY;
-	int insert, insertIndexOfArrayX, insertIndexOfArrayY, insertIndexOfCellX, insertIndexOfCellY, frameCounter;
+	int insert, insertIndexOfArrayX, insertIndexOfArrayY, insertIndexOfCellX, insertIndexOfCellY, frameCounter, mouseOffsetPerFrameX, mouseOffsetPerFrameY;
 	double zoom;
 	lineDistance = INITIAL_GRID_WIDTH;
 
@@ -26,8 +33,8 @@ void drawGrid () {
 	SetTargetFPS(60);
 	insert = 1;
 	mouseOffsetX = mouseOffsetY = 0;
-	worldPosX = worldPosY = 0;
 	prevMouseOffsetX = prevMouseOffsetY = 0;
+	worldPosX = worldPosY = 0;
 	zoom = 1.000;
 	frameCounter = CHUNK_UPDATE_RATE;
 	while (!WindowShouldClose()) {
@@ -41,9 +48,11 @@ void drawGrid () {
 			prevMouseOffsetY = mouseOffsetY;
 			mouseOffsetX = GetMouseX() - initMouseX;
 			mouseOffsetY = GetMouseY() - initMouseY;
+			mouseOffsetPerFrameX = mouseOffsetX - prevMouseOffsetX;
+			mouseOffsetPerFrameY = mouseOffsetY - prevMouseOffsetY;
 		}
 		if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
-
+			mouseOffsetPerFrameX = mouseOffsetPerFrameY = 0;
 		}
 		
 		zoom = GetMouseWheelMove();
@@ -51,15 +60,10 @@ void drawGrid () {
 
 
 		BeginDrawing();
-			//Rectangles for testing
-//			DrawRectangle(worldPosX, worldPosY, lineDistance, lineDistance, GRAY);
-			
-		//	DrawRectangle(worldPosX + lineDistance * 2, worldPosY + lineDistance * 2, lineDistance, lineDistance, GRAY);
-			//DrawRectangle(worldPosX + lineDistance * 10, worldPosY + lineDistance * 10, lineDistance, lineDistance, GRAY);
 			
 			ClearBackground(RAYWHITE);
-			worldPosX += mouseOffsetX - prevMouseOffsetX;
-			worldPosY += mouseOffsetY - prevMouseOffsetY;
+			worldPosX += mouseOffsetPerFrameX;
+			worldPosY += mouseOffsetPerFrameY; 
 
 
 			drawnPosX = worldPosX % lineDistance; 
@@ -81,8 +85,9 @@ void drawGrid () {
 				drawnPosY += lineDistance;
 				
 			}
-			if (IsKeyPressed(32)){
+			if (IsKeyPressed(32) && insert){
 				insert = 0;
+				initialTestedCells(&renderedChunks[0]);
 			}
 			if (insert) {
 				if(IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
@@ -97,12 +102,15 @@ void drawGrid () {
 					insertIndexOfCellY = (mouseRClickY - worldPosY) / lineDistance;
 
 					renderedChunks[0].cells[insertIndexOfCellY][insertIndexOfCellX].alive = !renderedChunks[0].cells[insertIndexOfCellY][insertIndexOfCellX].alive;
+					renderedChunks[0].cellsToTest[renderedChunks[0].cellsToTestCount][0] = insertIndexOfCellX;
+					renderedChunks[0].cellsToTest[renderedChunks[0].cellsToTestCount][1] = insertIndexOfCellY;
+					renderedChunks[0].cellsToTestCount++;
+
 				}
 			} else {
 				
 				if (frameCounter == CHUNK_UPDATE_RATE) {
 					testAliveNeighbors(&renderedChunks[0]);
-					putchar('\n');
 					cellAliveState(&renderedChunks[0]);
 					--frameCounter;
 				} else {
