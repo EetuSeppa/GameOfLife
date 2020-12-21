@@ -13,6 +13,7 @@ Needed:
     -when indexing is done, fix arrays to grid
   
   3. Implement rendering based on arrays.
+    -Possibility for multithreading: first thread draws the UI, second thread does operations on chunks and every X frames contents of chunks are drawn to UI.
     -If there has been no alive cells near array, no need to check cell states inside array
     -If there are zero alive cells inside rendered array, and no nearby cells, no need to check alive states inside array
     -Only way an unrendered array becomes rendered is if neighbor array has alive cells on colliding edge
