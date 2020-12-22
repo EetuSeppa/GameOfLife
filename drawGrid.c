@@ -1,15 +1,16 @@
 /*
 	
 	TODO:
-	MAKE ARRAY INDEXING BASED ON CLICKED ARRAY
-	DRAW ON MIDDLE ARRAY
 
+	-Free empty arrays
 	-If alive cell "collides" with corner or edge of array, start checking in next array.
 		-If collision in edges happens, check if array is alive yet, if not malloc space for array and insert edge cells to cellsToCheck of new array. If array is already rendered, just do the latter.  	
 			-Needs logic for finding correct index of colliding array
 
-	SHOULD DO THIS FIRST
-	-Implement placing of cells into other arrays besides center array.
+
+
+
+	-v Implement placing of cells into other arrays besides center array.
 		-Needs functionality for allocating memory for new arrays and giving arrays correct coordinates
 		-Needed also: testing alive conditions of multiple arrays
 
@@ -103,7 +104,9 @@ void drawGrid () {
 			}
 			if (IsKeyPressed(32) && insert){
 				insert = 0;
-				//initialTestedCells(&renderedChunks[0]);
+				for (i = 0; i < renderedChunkIndex; ++i) {
+					initialTestedCells(renderedChunks[i]);
+				}
 			}
 			if (insert) {
 				if(IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
@@ -148,10 +151,10 @@ void drawGrid () {
 			} else {
 				
 				if (frameCounter == CHUNK_UPDATE_RATE) {
-				/*
-					testAliveNeighbors(&renderedChunks[0]);
-					cellAliveState(&renderedChunks[0]);
-				*/
+					for (i = 0; i < renderedChunkIndex; ++i) {
+						testAliveNeighbors(renderedChunks[i]);
+						cellAliveState(renderedChunks[i]);
+					}
 					--frameCounter;
 				} else {
 					--frameCounter;

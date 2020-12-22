@@ -104,13 +104,14 @@ void testAliveNeighbors (Chunk * chunk) {
 	}
 }
 
-void cellAliveState (Chunk * chunk) {
-	int i, x, y, aliveNeighbors, tempArrayIndex, xCoord, yCoord;
+int cellAliveState (Chunk * chunk) {
+	int i, x, y, aliveNeighbors, tempArrayIndex, xCoord, yCoord, aliveCount;
 	int elementToSearch[2];
 	//Do smarter memory allocation
 	int tempArray[ARR_SIZE * ARR_SIZE][2];
 	tempArrayIndex = 0;
 
+	aliveCount = 0;
 	for (i = 0; i < chunk->cellsToTestCount; ++i) {
 		xCoord = chunk->cellsToTest[i][0];
 		yCoord = chunk->cellsToTest[i][1];
@@ -124,6 +125,7 @@ void cellAliveState (Chunk * chunk) {
 			chunk->cells[yCoord][xCoord].alive = 0;
 		}
 		if (chunk->cells[yCoord][xCoord].alive) {
+			++aliveCount;
 			for (x = -1; x <= 1; x++) {
 				for (y = -1; y <= 1; ++y) {
 					elementToSearch[0] = xCoord + x;				
@@ -140,6 +142,7 @@ void cellAliveState (Chunk * chunk) {
 	//printInfo(*chunk);
 	copyArray(chunk, tempArray);
 	chunk->cellsToTestCount = tempArrayIndex;
+	return aliveCount;
 }
 
 void copyArray (Chunk * chunk, int arr[][2]) {
