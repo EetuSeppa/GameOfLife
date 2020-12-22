@@ -20,6 +20,21 @@ typedef struct chunk {
 	int coord[2];
 } Chunk;
 
+//Returns -1 if not found
+int findIndex (int elementToSearch[], Chunk * arr[], int limit) {
+	int i, index;	
+	index = -1;
+
+	for (i = 0; i < limit; ++i) {
+		if 	(arr[i]->coord[0] == elementToSearch[0]) {
+			if (arr[i]->coord[1] == elementToSearch[1]) {
+				index = i;
+			}
+		}
+	}
+
+	return index;
+}
 //Need a faster way of searching, perhaps sorting first and then binary searching for x coordinate
 int found (int elementToSearch[], int arr[][2], int limit) {
 	int i, found;	

@@ -1,5 +1,8 @@
 /*
+	
 	TODO:
+	MAKE ARRAY INDEXING BASED ON CLICKED ARRAY
+	DRAW ON MIDDLE ARRAY
 
 	-If alive cell "collides" with corner or edge of array, start checking in next array.
 		-If collision in edges happens, check if array is alive yet, if not malloc space for array and insert edge cells to cellsToCheck of new array. If array is already rendered, just do the latter.  	
@@ -18,6 +21,7 @@
 #include "raylib.h"
 #include <stdlib.h>
 #include "arrays.c"
+#include "helpers.c"
 
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 700
@@ -25,15 +29,16 @@
 #define CHUNK_UPDATE_RATE 50
 void drawGrid () {		
 
-	Chunk renderedChunks[50];
-	renderedChunks[0].coord[0] = 0;
-	renderedChunks[0].coord[1] = 0;
-	renderedChunks[0].cellsToTestCount = 0;
+	Chunk *renderedChunks[50];
 
 	int lineDistance, i, j, k, drawnPosX, drawnPosY, worldPosX, worldPosY, mouseRClickX, mouseRClickY, rectPosX, rectPosY;
 	int initMouseX, initMouseY, mouseOffsetX, mouseOffsetY, prevMouseOffsetX, prevMouseOffsetY;
-	int insert, insertIndexOfArrayX, insertIndexOfArrayY, insertIndexOfCellX, insertIndexOfCellY, frameCounter, mouseOffsetPerFrameX, mouseOffsetPerFrameY;
+	int insert, worldIndexOfArrayX, worldIndexOfArrayY, insertIndexOfCellX, insertIndexOfCellY, frameCounter, mouseOffsetPerFrameX, mouseOffsetPerFrameY;
+	int renderedChunkIndex, indexOfCurArr, rectX, rectY;
+	int coordToFind[2];
 	double zoom;
+
+
 	lineDistance = INITIAL_GRID_WIDTH;
 
 	InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Game Of Life");
@@ -42,9 +47,12 @@ void drawGrid () {
 	insert = 1;
 	mouseOffsetX = mouseOffsetY = 0;
 	prevMouseOffsetX = prevMouseOffsetY = 0;
+	mouseOffsetPerFrameX = mouseOffsetPerFrameY = 0;
 	worldPosX = worldPosY = 0;
 	zoom = 1.000;
 	frameCounter = CHUNK_UPDATE_RATE;
+	renderedChunkIndex = 0;
+
 	while (!WindowShouldClose()) {
 		
 		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
@@ -95,7 +103,7 @@ void drawGrid () {
 			}
 			if (IsKeyPressed(32) && insert){
 				insert = 0;
-				initialTestedCells(&renderedChunks[0]);
+				//initialTestedCells(&renderedChunks[0]);
 			}
 			if (insert) {
 				if(IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
@@ -103,30 +111,47 @@ void drawGrid () {
 					mouseRClickY = GetMouseY();
 						
 					//Used for finding index of clicked array
-					insertIndexOfArrayX = ((mouseRClickX - worldPosX) / lineDistance) / ARR_SIZE;
-					insertIndexOfArrayY = ((mouseRClickY - worldPosY) / lineDistance) / ARR_SIZE;
+					worldIndexOfArrayX = ((mouseRClickX - worldPosX) / lineDistance) / ARR_SIZE;
+					worldIndexOfArrayY = ((mouseRClickY - worldPosY) / lineDistance) / ARR_SIZE;
 
 					if (mouseRClickX - worldPosX < 0)
-						--insertIndexOfArrayX;
+						--worldIndexOfArrayX;
 					if (mouseRClickY - worldPosY < 0)
-						--insertIndexOfArrayY;
+						--worldIndexOfArrayY;
 						
-					//printf("X: %d, Y: %d\n", insertIndexOfArrayX, insertIndexOfArrayY);
 
-					insertIndexOfCellX = (mouseRClickX - worldPosX) / lineDistance;
-					insertIndexOfCellY = (mouseRClickY - worldPosY) / lineDistance;
+					coordToFind[0] = worldIndexOfArrayX;
+					coordToFind[1] = worldIndexOfArrayY;
+					if ((indexOfCurArr = findIndex(coordToFind,  renderedChunks, renderedChunkIndex)) == -1) {
+						indexOfCurArr = renderedChunkIndex;
+						renderedChunks[indexOfCurArr] = malloc(sizeof(Chunk));
+						++renderedChunkIndex;
+						renderedChunks[indexOfCurArr]->coord[0] = worldIndexOfArrayX;
+						renderedChunks[indexOfCurArr]->coord[1] = worldIndexOfArrayY;
+						renderedChunks[indexOfCurArr]->cellsToTestCount = 0;
+						initializeZeroArray(renderedChunks[indexOfCurArr]->cells);
 
-					renderedChunks[0].cells[insertIndexOfCellY][insertIndexOfCellX].alive = !renderedChunks[0].cells[insertIndexOfCellY][insertIndexOfCellX].alive;
-					renderedChunks[0].cellsToTest[renderedChunks[0].cellsToTestCount][0] = insertIndexOfCellX;
-					renderedChunks[0].cellsToTest[renderedChunks[0].cellsToTestCount][1] = insertIndexOfCellY;
-					renderedChunks[0].cellsToTestCount++;
+					}
+					insertIndexOfCellX = ((mouseRClickX - worldPosX) / lineDistance) % ARR_SIZE;
+					insertIndexOfCellY = ((mouseRClickY - worldPosY) / lineDistance) % ARR_SIZE;
+					if (mouseRClickX - worldPosX < 0)
+						insertIndexOfCellX += 49;	
+					if (mouseRClickY - worldPosY < 0)
+						insertIndexOfCellY += 49;	
+
+					renderedChunks[indexOfCurArr]->cells[insertIndexOfCellY][insertIndexOfCellX].alive = !renderedChunks[indexOfCurArr]->cells[insertIndexOfCellY][insertIndexOfCellX].alive;	
+					renderedChunks[indexOfCurArr]->cellsToTest[renderedChunks[indexOfCurArr]->cellsToTestCount][0] = insertIndexOfCellX;
+					renderedChunks[indexOfCurArr]->cellsToTest[renderedChunks[indexOfCurArr]->cellsToTestCount][1] = insertIndexOfCellY;
+					renderedChunks[indexOfCurArr]->cellsToTestCount = renderedChunks[indexOfCurArr]->cellsToTestCount + 1;
 
 				}
 			} else {
 				
 				if (frameCounter == CHUNK_UPDATE_RATE) {
+				/*
 					testAliveNeighbors(&renderedChunks[0]);
 					cellAliveState(&renderedChunks[0]);
+				*/
 					--frameCounter;
 				} else {
 					--frameCounter;
@@ -135,13 +160,14 @@ void drawGrid () {
 					}
 				}
 			}
-				for (i = 0; i < ARR_SIZE; ++i) {
-					for (j = 0; j < ARR_SIZE; ++j) {
-						if(renderedChunks[0].cells[i][j].alive) {
+				for (i = 0; i < renderedChunkIndex; ++i) {
+					for (j = 0; j < renderedChunks[i]->cellsToTestCount; ++j) {
 							//TODO: only render if coords are inside screen
-							DrawRectangle(worldPosX + j * lineDistance, worldPosY + i * lineDistance, lineDistance, lineDistance, GRAY);
-
-					 	}
+							if (renderedChunks[i]->cells[renderedChunks[i]->cellsToTest[j][1]][renderedChunks[i]->cellsToTest[j][0]].alive) {
+								rectX = (lineDistance * ARR_SIZE * renderedChunks[i]->coord[0]) + worldPosX + renderedChunks[i]->cellsToTest[j][0] * lineDistance;
+								rectY = (lineDistance * ARR_SIZE * renderedChunks[i]->coord[1]) + worldPosY + renderedChunks[i]->cellsToTest[j][1] * lineDistance;
+								DrawRectangle(rectX, rectY, lineDistance, lineDistance, GRAY);
+					 		}
 					}
 				}
 		EndDrawing();
