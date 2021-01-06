@@ -3,13 +3,14 @@
 	TODO:
 
 	-Free empty arrays
+
 	-If alive cell "collides" with corner or edge of array, start checking in next array.
 		-If collision in edges happens, check if array is alive yet, if not malloc space for array and insert edge cells to cellsToCheck of new array. If array is already rendered, just do the latter.  	
-			-Needs logic for finding correct index of colliding array
 
 
 
 
+	-v Needs logic for finding correct index of colliding array
 	-v Implement placing of cells into other arrays besides center array.
 		-Needs functionality for allocating memory for new arrays and giving arrays correct coordinates
 		-Needed also: testing alive conditions of multiple arrays
@@ -19,10 +20,10 @@
 
 */
 #include <stdio.h>
-#include "raylib.h"
 #include <stdlib.h>
+#include "raylib.h"
 #include "arrays.c"
-#include "helpers.c"
+#include "helpers.h"
 
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 700
@@ -126,13 +127,9 @@ void drawGrid () {
 					coordToFind[0] = worldIndexOfArrayX;
 					coordToFind[1] = worldIndexOfArrayY;
 					if ((indexOfCurArr = findIndex(coordToFind,  renderedChunks, renderedChunkIndex)) == -1) {
-						indexOfCurArr = renderedChunkIndex;
-						renderedChunks[indexOfCurArr] = malloc(sizeof(Chunk));
-						++renderedChunkIndex;
-						renderedChunks[indexOfCurArr]->coord[0] = worldIndexOfArrayX;
-						renderedChunks[indexOfCurArr]->coord[1] = worldIndexOfArrayY;
-						renderedChunks[indexOfCurArr]->cellsToTestCount = 0;
-						initializeZeroArray(renderedChunks[indexOfCurArr]->cells);
+
+						renderChunk(&renderedChunkIndex, renderedChunks, worldIndexOfArrayX, worldIndexOfArrayY);
+						indexOfCurArr = renderedChunkIndex - 1;
 
 					}
 					insertIndexOfCellX = ((mouseRClickX - worldPosX) / lineDistance) % ARR_SIZE;
@@ -149,13 +146,15 @@ void drawGrid () {
 
 				}
 			} else {
-				
 				if (frameCounter == CHUNK_UPDATE_RATE) {
 					for (i = 0; i < renderedChunkIndex; ++i) {
-						testAliveNeighbors(renderedChunks[i]);
+						testAliveNeighbors(renderedChunks[i], renderedChunks, &renderedChunkIndex);
+					}
+					for (i = 0; i < renderedChunkIndex; ++i) {
 						cellAliveState(renderedChunks[i]);
 					}
 					--frameCounter;
+					//getchar();	
 				} else {
 					--frameCounter;
 					if (frameCounter <= 0) {
@@ -163,9 +162,11 @@ void drawGrid () {
 					}
 				}
 			}
+			//DOESNT RUN FOR FOR EVERY CELL
 				for (i = 0; i < renderedChunkIndex; ++i) {
 					for (j = 0; j < renderedChunks[i]->cellsToTestCount; ++j) {
 							//TODO: only render if coords are inside screen
+							renderedChunks[i]->cells[renderedChunks[i]->cellsToTest[j][1]][renderedChunks[i]->cellsToTest[j][0]].aliveNeighbors = 0;
 							if (renderedChunks[i]->cells[renderedChunks[i]->cellsToTest[j][1]][renderedChunks[i]->cellsToTest[j][0]].alive) {
 								rectX = (lineDistance * ARR_SIZE * renderedChunks[i]->coord[0]) + worldPosX + renderedChunks[i]->cellsToTest[j][0] * lineDistance;
 								rectY = (lineDistance * ARR_SIZE * renderedChunks[i]->coord[1]) + worldPosY + renderedChunks[i]->cellsToTest[j][1] * lineDistance;
