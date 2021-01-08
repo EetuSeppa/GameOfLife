@@ -37,6 +37,8 @@
 #define SCREEN_HEIGHT 700
 #define INITIAL_GRID_WIDTH 15
 #define CHUNK_UPDATE_RATE 40
+
+void drawSelectionRect (int x1, int y1, int x2, int y2);
 void drawGrid () {		
 
 	//Chunk *renderedChunks[50];
@@ -45,6 +47,7 @@ void drawGrid () {
 	int initMouseX, initMouseY, mouseOffsetX, mouseOffsetY, prevMouseOffsetX, prevMouseOffsetY;
 	int insert, worldIndexOfArrayX, worldIndexOfArrayY, insertIndexOfCellX, insertIndexOfCellY, frameCounter, mouseOffsetPerFrameX, mouseOffsetPerFrameY;
 	int renderedChunkCount, indexOfCurArr, rectX, rectY;
+	int selectionStartX, selectionStartY, newCopy;
 	int coordToFind[2];
 	double zoom;
 	Chunk * firstChunk, * lastChunk, * curChunk;
@@ -63,14 +66,17 @@ void drawGrid () {
 	zoom = 1.000;
 	frameCounter = CHUNK_UPDATE_RATE;
 	renderedChunkCount = 0;
+	newCopy = 0;
 
 	while (!WindowShouldClose()) {
 		
-		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+
+		//99 C
+		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !IsKeyDown(KEY_C)) {
 			initMouseX = GetMouseX() - worldPosX;
 			initMouseY = GetMouseY() - worldPosY;
 		}
-		if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
+		if (IsMouseButtonDown(MOUSE_LEFT_BUTTON) && !IsKeyDown(KEY_C)) {
 			prevMouseOffsetX = mouseOffsetX;
 			prevMouseOffsetY = mouseOffsetY;
 			mouseOffsetX = GetMouseX() - initMouseX;
@@ -78,9 +84,15 @@ void drawGrid () {
 			mouseOffsetPerFrameX = mouseOffsetX - prevMouseOffsetX;
 			mouseOffsetPerFrameY = mouseOffsetY - prevMouseOffsetY;
 		}
-		if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
+		if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON) && !IsKeyDown(KEY_C)) {
 			mouseOffsetPerFrameX = mouseOffsetPerFrameY = 0;
 		}
+		if (IsKeyDown(KEY_C) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+			selectionStartX = GetMouseX();
+			selectionStartY = GetMouseY();
+			newCopy = 1;
+		}
+
 		
 		zoom = GetMouseWheelMove();
 		lineDistance -= (int)zoom;
@@ -223,11 +235,45 @@ void drawGrid () {
 							break;
 					} while (1);
 			}
+			if (IsKeyDown(KEY_C) && newCopy) {
+				drawSelectionRect(
+					((selectionStartX/lineDistance) * lineDistance) + worldPosX % lineDistance,
+					((selectionStartY/lineDistance) * lineDistance) + worldPosY % lineDistance,
+					(GetMouseX()/lineDistance) * lineDistance + worldPosX % lineDistance,
+					(GetMouseY()/lineDistance) * lineDistance + worldPosY % lineDistance
+				);
+			}
+			if (IsKeyDown(KEY_C) && IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
+				newCopy = 0;
+				//Copy selected cells here
+			}
+
 		EndDrawing();
 	}
 }
 
 int main (void) {
 	drawGrid();
+
+}
+void drawSelectionRect (int x1, int y1, int x2, int y2) {
+	float thickness = 5.5;
+	Vector2 pos1, pos2;
+	
+	pos1.x = x1; pos1.y = y1;
+	pos2.x = x2; pos2.y = y1;
+	DrawLineEx(pos1, pos2, thickness, RED);
+
+	pos1.x = x1; pos1.y = y2;
+	pos2.x = x2; pos2.y = y2;
+	DrawLineEx(pos1, pos2, thickness, RED);
+
+	pos1.x = x1; pos1.y = y1;
+	pos2.x = x1; pos2.y = y2;
+	DrawLineEx(pos1, pos2, thickness, RED);
+	
+	pos1.x = x2; pos1.y = y1;
+	pos2.x = x2; pos2.y = y2;
+	DrawLineEx(pos1, pos2, thickness, RED);
 
 }
