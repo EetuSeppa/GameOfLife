@@ -1,6 +1,15 @@
 /*
 	
 	TODO:
+	-Change array of rendered chunks to linked list
+		-Requires changes in every function
+
+	-Implement pausing evolution and inserting cells by pressing space
+
+	-Implemented copying and pasting
+		-When c key is pressed and mouse is dragged selection is active
+		-When c key is released cells inside selection get put in a temporary array
+		-When v and left mouse is pressed this temporary array is pasted
 
 	-Free empty arrays
 
@@ -10,8 +19,7 @@
 
 
 
-	-v Needs logic for finding correct index of colliding array
-	-v Implement placing of cells into other arrays besides center array.
+	-v Needs logic for finding correct index of colliding array -v Implement placing of cells into other arrays besides center array.
 		-Needs functionality for allocating memory for new arrays and giving arrays correct coordinates
 		-Needed also: testing alive conditions of multiple arrays
 
@@ -28,7 +36,7 @@
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 700
 #define INITIAL_GRID_WIDTH 15
-#define CHUNK_UPDATE_RATE 50
+#define CHUNK_UPDATE_RATE 40
 void drawGrid () {		
 
 	Chunk *renderedChunks[50];

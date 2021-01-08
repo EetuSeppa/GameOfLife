@@ -47,7 +47,7 @@ void printInfo (Chunk chunk) {
 	
 	printf("%d count of tested cells\n", chunk.cellsToTestCount);
 	for (i = 0; i < chunk.cellsToTestCount; ++i) {
-		printf("x: %d, y: %d ", chunk.cellsToTest[i][0], chunk.cellsToTest[i][1]);
+		printf("\tx: %d, y: %d\n ", chunk.cellsToTest[i][0], chunk.cellsToTest[i][1]);
 	}
 	printf("\n\n");
 
@@ -64,7 +64,7 @@ void initialTestedCells (Chunk * chunk) {
 				searchArr[0] = chunk->cellsToTest[i][0] + x;
 				searchArr[1] = chunk->cellsToTest[i][1] + y;
 				if (searchArr[0] >= 0 && searchArr[0] <= ARR_SIZE - 1 && searchArr[1] >= 0 && searchArr[1] <= ARR_SIZE - 1) {
-					if (!found(searchArr, chunk->cellsToTest, cellIndex)) {
+					if (!found(searchArr, chunk->cellsToTest, chunk->cellsToTestCount)) {
 						chunk->cellsToTest[chunk->cellsToTestCount][0] = chunk->cellsToTest[i][0] + x;
 						chunk->cellsToTest[chunk->cellsToTestCount][1] = chunk->cellsToTest[i][1] + y;
 
@@ -81,7 +81,6 @@ void testAliveNeighbors (Chunk * chunk, Chunk *renderedArr[50], int * renderedIn
 		alive = 0;
 		xCoord = chunk->cellsToTest[i][0];
 		yCoord = chunk->cellsToTest[i][1];
-		printf("%d, %d alive %d\n", xCoord, yCoord, chunk->cells[yCoord][xCoord].aliveNeighbors);
 
 		if (xCoord != 0 && yCoord != 0 && xCoord != ARR_SIZE - 1 && yCoord != ARR_SIZE - 1) {
 			for (x = -1; x <= 1; x++) {
@@ -99,6 +98,7 @@ void testAliveNeighbors (Chunk * chunk, Chunk *renderedArr[50], int * renderedIn
 
 		} else {
 			chunkCollision(chunk, renderedArr, renderedIndex, xCoord, yCoord);
+			
 		}
 	}
 }
@@ -115,7 +115,6 @@ int cellAliveState (Chunk * chunk) {
 		xCoord = chunk->cellsToTest[i][0];
 		yCoord = chunk->cellsToTest[i][1];
 		aliveNeighbors = chunk->cells[yCoord][xCoord].aliveNeighbors;
-		printf("%d, %d: aliveneigh %d, alivestate %d\n", xCoord, yCoord, aliveNeighbors, chunk->cells[yCoord][xCoord].alive);
 
 		//TODO: PRINT COORDINATE AND ALIVENEIGHBORS FOR DEBUG
 
@@ -237,7 +236,7 @@ void chunkCollision (Chunk * chunk, Chunk *renderedArr[50], int * renderedIndex,
 		if ((renderedChunkIndex	= findIndex(coordToFind, renderedArr, *renderedIndex)) == -1) {
 			renderChunk(renderedIndex, renderedArr, coordToFind[0], coordToFind[1]);
 			renderedChunkIndex = *renderedIndex - 1;
-			printf("%d,%d coords of chunk\n", coordToFind[0], coordToFind[1]);
+			//printf("%d,%d coords of chunk\n", coordToFind[0], coordToFind[1]);
 		}
 		//Add alive states of neighbor chunk cells
 		curChunk = renderedArr[renderedChunkIndex];
@@ -253,13 +252,13 @@ void chunkCollision (Chunk * chunk, Chunk *renderedArr[50], int * renderedIndex,
 				coordToFind[0] = xCoordOfNeigh;
 				coordToFind[1] = yCoordOfNeigh;
 				if (!(found(coordToFind, curChunk->cellsToTest, curChunk->cellsToTestCount))) {
-					printf("got\n");
+					//printf("got\n");
 					curChunk->cellsToTest[curChunk->cellsToTestCount][0] = xCoordOfNeigh;	
 					curChunk->cellsToTest[curChunk->cellsToTestCount][1] = yCoordOfNeigh;	
 					curChunk->cellsToTestCount += 1;
 				}
 				curChunk->cells[yCoordOfNeigh][xCoordOfNeigh].aliveNeighbors += 1;	
-				printf("%d, %d curalive %d\n", xCoordOfNeigh, yCoordOfNeigh, curChunk->cells[yCoordOfNeigh][xCoordOfNeigh].aliveNeighbors);
+				//printf("%d, %d curalive %d\n\n", xCoordOfNeigh, yCoordOfNeigh, curChunk->cells[yCoordOfNeigh][xCoordOfNeigh].aliveNeighbors);
 			}
 		}
 	}
