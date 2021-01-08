@@ -39,14 +39,15 @@
 #define CHUNK_UPDATE_RATE 40
 void drawGrid () {		
 
-	Chunk *renderedChunks[50];
+	//Chunk *renderedChunks[50];
 
 	int lineDistance, i, j, k, drawnPosX, drawnPosY, worldPosX, worldPosY, mouseRClickX, mouseRClickY, rectPosX, rectPosY;
 	int initMouseX, initMouseY, mouseOffsetX, mouseOffsetY, prevMouseOffsetX, prevMouseOffsetY;
 	int insert, worldIndexOfArrayX, worldIndexOfArrayY, insertIndexOfCellX, insertIndexOfCellY, frameCounter, mouseOffsetPerFrameX, mouseOffsetPerFrameY;
-	int renderedChunkIndex, indexOfCurArr, rectX, rectY;
+	int renderedChunkCount, indexOfCurArr, rectX, rectY;
 	int coordToFind[2];
 	double zoom;
+	Chunk * firstChunk, * lastChunk, * curChunk;
 
 
 	lineDistance = INITIAL_GRID_WIDTH;
@@ -61,7 +62,7 @@ void drawGrid () {
 	worldPosX = worldPosY = 0;
 	zoom = 1.000;
 	frameCounter = CHUNK_UPDATE_RATE;
-	renderedChunkIndex = 0;
+	renderedChunkCount = 0;
 
 	while (!WindowShouldClose()) {
 		
@@ -113,8 +114,13 @@ void drawGrid () {
 			}
 			if (IsKeyPressed(32) && insert){
 				insert = 0;
-				for (i = 0; i < renderedChunkIndex; ++i) {
-					initialTestedCells(renderedChunks[i]);
+				curChunk = firstChunk;
+				 while (1) {
+					initialTestedCells(curChunk);
+					if (curChunk->nextChunk != NULL)
+						curChunk = curChunk->nextChunk;
+					else
+						break;
 				}
 			}
 			if (insert) {
@@ -134,12 +140,28 @@ void drawGrid () {
 
 					coordToFind[0] = worldIndexOfArrayX;
 					coordToFind[1] = worldIndexOfArrayY;
-					if ((indexOfCurArr = findIndex(coordToFind,  renderedChunks, renderedChunkIndex)) == -1) {
+					//Fix to return pointer to chunk
+					if (renderedChunkCount == 0) {
+						firstChunk = malloc(sizeof(Chunk));
 
-						renderChunk(&renderedChunkIndex, renderedChunks, worldIndexOfArrayX, worldIndexOfArrayY);
-						indexOfCurArr = renderedChunkIndex - 1;
+						firstChunk->coord[0] = worldIndexOfArrayX;
+						firstChunk->coord[1] = worldIndexOfArrayY;
 
+						firstChunk->cellsToTestCount = 0;
+						initializeZeroArray(firstChunk->cells);
+						firstChunk->nextChunk = NULL;
+
+						lastChunk = firstChunk;
+						curChunk = firstChunk;
+						++renderedChunkCount;
+					} else {
+						if ((curChunk = findIndex(coordToFind, firstChunk)) == NULL) {
+							lastChunk = renderChunk(lastChunk, worldIndexOfArrayX, worldIndexOfArrayY);
+							curChunk = lastChunk;
+							++renderedChunkCount;
+						}
 					}
+
 					insertIndexOfCellX = ((mouseRClickX - worldPosX) / lineDistance) % ARR_SIZE;
 					insertIndexOfCellY = ((mouseRClickY - worldPosY) / lineDistance) % ARR_SIZE;
 					if (mouseRClickX - worldPosX < 0)
@@ -147,20 +169,32 @@ void drawGrid () {
 					if (mouseRClickY - worldPosY < 0)
 						insertIndexOfCellY += 49;	
 
-					renderedChunks[indexOfCurArr]->cells[insertIndexOfCellY][insertIndexOfCellX].alive = !renderedChunks[indexOfCurArr]->cells[insertIndexOfCellY][insertIndexOfCellX].alive;	
-					renderedChunks[indexOfCurArr]->cellsToTest[renderedChunks[indexOfCurArr]->cellsToTestCount][0] = insertIndexOfCellX;
-					renderedChunks[indexOfCurArr]->cellsToTest[renderedChunks[indexOfCurArr]->cellsToTestCount][1] = insertIndexOfCellY;
-					renderedChunks[indexOfCurArr]->cellsToTestCount = renderedChunks[indexOfCurArr]->cellsToTestCount + 1;
+					curChunk->cells[insertIndexOfCellY][insertIndexOfCellX].alive = !curChunk->cells[insertIndexOfCellY][insertIndexOfCellX].alive;	
+					curChunk->cellsToTest[curChunk->cellsToTestCount][0] = insertIndexOfCellX;
+					curChunk->cellsToTest[curChunk->cellsToTestCount][1] = insertIndexOfCellY;
+					curChunk->cellsToTestCount = curChunk->cellsToTestCount + 1;
 
 				}
 			} else {
 				if (frameCounter == CHUNK_UPDATE_RATE) {
-					for (i = 0; i < renderedChunkIndex; ++i) {
-						testAliveNeighbors(renderedChunks[i], renderedChunks, &renderedChunkIndex);
-					}
-					for (i = 0; i < renderedChunkIndex; ++i) {
-						cellAliveState(renderedChunks[i]);
-					}
+					//printf("%d\n", renderedChunkCount);
+					curChunk = firstChunk;
+					while (1) {
+						testAliveNeighbors(curChunk, &lastChunk, firstChunk, &renderedChunkCount);
+
+						if (curChunk->nextChunk != NULL) 
+							curChunk = curChunk->nextChunk;
+						else
+							break;
+					} 
+					curChunk = firstChunk;
+					while (1) {
+						cellAliveState(curChunk);
+						if (curChunk->nextChunk != NULL)
+							curChunk = curChunk->nextChunk;
+						else
+							break;
+					} 
 					--frameCounter;
 					//getchar();	
 				} else {
@@ -170,18 +204,25 @@ void drawGrid () {
 					}
 				}
 			}
-			//DOESNT RUN FOR FOR EVERY CELL
-				for (i = 0; i < renderedChunkIndex; ++i) {
-					for (j = 0; j < renderedChunks[i]->cellsToTestCount; ++j) {
-							//TODO: only render if coords are inside screen
-							renderedChunks[i]->cells[renderedChunks[i]->cellsToTest[j][1]][renderedChunks[i]->cellsToTest[j][0]].aliveNeighbors = 0;
-							if (renderedChunks[i]->cells[renderedChunks[i]->cellsToTest[j][1]][renderedChunks[i]->cellsToTest[j][0]].alive) {
-								rectX = (lineDistance * ARR_SIZE * renderedChunks[i]->coord[0]) + worldPosX + renderedChunks[i]->cellsToTest[j][0] * lineDistance;
-								rectY = (lineDistance * ARR_SIZE * renderedChunks[i]->coord[1]) + worldPosY + renderedChunks[i]->cellsToTest[j][1] * lineDistance;
-								DrawRectangle(rectX, rectY, lineDistance, lineDistance, GRAY);
-					 		}
-					}
-				}
+
+				if (renderedChunkCount > 0) {
+					curChunk = firstChunk;
+					 do {
+						for (j = 0; j < curChunk->cellsToTestCount; ++j) {
+								//TODO: only render if coords are inside screen
+								curChunk->cells[curChunk->cellsToTest[j][1]][curChunk->cellsToTest[j][0]].aliveNeighbors = 0;
+								if (curChunk->cells[curChunk->cellsToTest[j][1]][curChunk->cellsToTest[j][0]].alive) {
+									rectX = (lineDistance * ARR_SIZE * curChunk->coord[0]) + worldPosX + curChunk->cellsToTest[j][0] * lineDistance;
+									rectY = (lineDistance * ARR_SIZE * curChunk->coord[1]) + worldPosY + curChunk->cellsToTest[j][1] * lineDistance;
+									DrawRectangle(rectX, rectY, lineDistance, lineDistance, GRAY);
+						 		}
+						}
+						if (curChunk->nextChunk != NULL)
+							curChunk = curChunk->nextChunk;
+						else 
+							break;
+					} while (1);
+			}
 		EndDrawing();
 	}
 }

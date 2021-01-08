@@ -6,24 +6,26 @@
 
 //TODO: Getting too many neighbors
 
-void chunkCollision (Chunk * chunk, Chunk *renderedArr[50], int * renderedIndex, int cellXCoord, int cellYCoord);
+void chunkCollision (Chunk * chunk, Chunk ** lastChunk, Chunk * firstChunk, int cellXCoord, int cellYCoord, int *renderedChunkCount);
 
-
-
-//Returns -1 if not found
-int findIndex (int elementToSearch[], Chunk * arr[], int limit) {
-	int i, index;	
-	index = -1;
-
-	for (i = 0; i < limit; ++i) {
-		if 	(arr[i]->coord[0] == elementToSearch[0]) {
-			if (arr[i]->coord[1] == elementToSearch[1]) {
-				index = i;
+//Return null pointer if not found
+Chunk * findIndex (int elementToSearch[], Chunk * firstChunk) {
+	Chunk * curChunk;
+	
+	curChunk = firstChunk;
+	do {
+		if 	(curChunk->coord[0] == elementToSearch[0]) {
+			if (curChunk->coord[1] == elementToSearch[1]) {
+				return curChunk;
 			}
 		}
-	}
+		if (curChunk->nextChunk != NULL)
+			curChunk = curChunk->nextChunk;
+		else 
+			break;
+	} while (1);
 
-	return index;
+	return NULL;
 }
 
 //Need a faster way of searching, perhaps sorting first and then binary searching for x coordinate
@@ -75,8 +77,9 @@ void initialTestedCells (Chunk * chunk) {
 		}
 	}
 }
-void testAliveNeighbors (Chunk * chunk, Chunk *renderedArr[50], int * renderedIndex) {
+void testAliveNeighbors (Chunk * chunk, Chunk ** lastChunk, Chunk * firstChunk, int *renderedChunkCount) {
 	int i, x, y, alive, xCoord, yCoord;
+
 	for (i = 0; i < chunk->cellsToTestCount; ++i) {
 		alive = 0;
 		xCoord = chunk->cellsToTest[i][0];
@@ -86,7 +89,6 @@ void testAliveNeighbors (Chunk * chunk, Chunk *renderedArr[50], int * renderedIn
 			for (x = -1; x <= 1; x++) {
 				for (y = -1; y <= 1; y++) {
 						if (chunk->cells[yCoord + y][xCoord + x].alive) {
-							//printf("x: %d, y: %d\n", xCoord, yCoord);
 							++alive;		
 						}
 				}
@@ -97,7 +99,7 @@ void testAliveNeighbors (Chunk * chunk, Chunk *renderedArr[50], int * renderedIn
 			chunk->cells[yCoord][xCoord].aliveNeighbors = alive;			
 
 		} else {
-			chunkCollision(chunk, renderedArr, renderedIndex, xCoord, yCoord);
+			chunkCollision(chunk, lastChunk, firstChunk, xCoord, yCoord, renderedChunkCount);
 			
 		}
 	}
@@ -154,7 +156,7 @@ void copyArray (Chunk * chunk, int arr[][2]) {
 	memcpy(&chunk->cellsToTest, arr, sizeof(chunk->cellsToTest));
 }
 
-void chunkCollision (Chunk * chunk, Chunk *renderedArr[50], int * renderedIndex, int cellXCoord, int cellYCoord) {
+void chunkCollision (Chunk * chunk, Chunk ** lastChunk, Chunk * firstChunk, int cellXCoord, int cellYCoord, int *renderedChunkCount) {
 	//Values needed for testing array corners
 	int chunkXCoord, chunkYCoord, renderedChunkIndex, i, j, x, y, xCoordOfNeigh, yCoordOfNeigh;	
 
@@ -233,13 +235,13 @@ void chunkCollision (Chunk * chunk, Chunk *renderedArr[50], int * renderedIndex,
 		coordToFind[0] = chunk->coord[0] + neighborCoordsDest[i][0];
 		coordToFind[1] = chunk->coord[1] + neighborCoordsDest[i][1];
 
-		if ((renderedChunkIndex	= findIndex(coordToFind, renderedArr, *renderedIndex)) == -1) {
-			renderChunk(renderedIndex, renderedArr, coordToFind[0], coordToFind[1]);
-			renderedChunkIndex = *renderedIndex - 1;
+		if ((curChunk = findIndex(coordToFind, firstChunk)) == NULL) {
+			curChunk = renderChunk(*lastChunk, coordToFind[0], coordToFind[1]);
+			*renderedChunkCount += 1;
+			*lastChunk = curChunk;
 			//printf("%d,%d coords of chunk\n", coordToFind[0], coordToFind[1]);
 		}
 		//Add alive states of neighbor chunk cells
-		curChunk = renderedArr[renderedChunkIndex];
 		for (j = 0; j < 5; ++j) {
 			if (cellCoordsDest[i][j][0] == -51) {
 				break;

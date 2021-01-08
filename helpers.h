@@ -17,6 +17,7 @@ typedef struct cell {
 } Cell;
 
 typedef struct chunk {
+	struct chunk * nextChunk; //Points to next rendered chunk
 	Cell cells[ARR_SIZE][ARR_SIZE]; //Array of cells
 	int cellsToTest[ARR_SIZE * ARR_SIZE][2]; //Cell coordinates that need to be tested
 	int cellsToTestCount; //Count of tested cells
@@ -24,5 +25,6 @@ typedef struct chunk {
 } Chunk;
 
 void initializeZeroArray (Cell arr[][ARR_SIZE]);
-void renderChunk(int * chunkIndex, Chunk * renderedChunks[], int xCoord, int yCoord);
+Chunk * renderChunk(Chunk * lastChunk, int xCoord, int yCoord);
+
 #endif

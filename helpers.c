@@ -4,16 +4,19 @@
 #include "helpers.h"
 
 //Allocates memory for new chunk, increments chunkIndex
-void renderChunk(int * chunkIndex, Chunk * renderedChunks[], int xCoord, int yCoord) {
+Chunk * renderChunk(Chunk * lastChunk, int xCoord, int yCoord) {
+	Chunk * curChunk;
 
-	renderedChunks[*chunkIndex] = malloc(sizeof(Chunk));
-	renderedChunks[*chunkIndex]->coord[0] = xCoord;
-	renderedChunks[*chunkIndex]->coord[1] = yCoord;
-	renderedChunks[*chunkIndex]->cellsToTestCount = 0;
-	initializeZeroArray(renderedChunks[*chunkIndex]->cells);
-
-	*chunkIndex += 1;
-
+	curChunk = malloc(sizeof(Chunk));
+	lastChunk->nextChunk = curChunk;
+	curChunk->coord[0] = xCoord;
+	curChunk->coord[1] = yCoord;
+	curChunk->cellsToTestCount = 0;
+	initializeZeroArray(curChunk->cells);
+	
+	curChunk->nextChunk = NULL;
+	
+	return curChunk;
 }
 void initializeZeroArray (Cell arr[][ARR_SIZE]) {
 
