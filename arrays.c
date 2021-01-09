@@ -8,26 +8,6 @@
 
 void chunkCollision (Chunk * chunk, Chunk ** lastChunk, Chunk * firstChunk, int cellXCoord, int cellYCoord, int *renderedChunkCount);
 
-//Return null pointer if not found
-Chunk * findIndex (int elementToSearch[], Chunk * firstChunk) {
-	Chunk * curChunk;
-	
-	curChunk = firstChunk;
-	do {
-		if 	(curChunk->coord[0] == elementToSearch[0]) {
-			if (curChunk->coord[1] == elementToSearch[1]) {
-				return curChunk;
-			}
-		}
-		if (curChunk->nextChunk != NULL)
-			curChunk = curChunk->nextChunk;
-		else 
-			break;
-	} while (1);
-
-	return NULL;
-}
-
 //Need a faster way of searching, perhaps sorting first and then binary searching for x coordinate
 int found (int elementToSearch[], int arr[][2], int limit) {
 	int i, found;	

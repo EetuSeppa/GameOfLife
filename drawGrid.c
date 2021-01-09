@@ -47,12 +47,13 @@ void drawGrid () {
 	int initMouseX, initMouseY, mouseOffsetX, mouseOffsetY, prevMouseOffsetX, prevMouseOffsetY;
 	int insert, worldIndexOfArrayX, worldIndexOfArrayY, insertIndexOfCellX, insertIndexOfCellY, frameCounter, mouseOffsetPerFrameX, mouseOffsetPerFrameY;
 	int renderedChunkCount, indexOfCurArr, rectX, rectY;
-	int selectionStartX, selectionStartY, newCopy;
+	int selectionStartX, selectionStartY, newCopy, selectionSizeX, selectionSizeY;
 	int coordToFind[2];
 	double zoom;
 	Chunk * firstChunk, * lastChunk, * curChunk;
+	Cell * selectedArea;
 
-
+	selectedArea = NULL;
 	lineDistance = INITIAL_GRID_WIDTH;
 
 	InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Game Of Life");
@@ -140,14 +141,8 @@ void drawGrid () {
 					mouseRClickX = GetMouseX();
 					mouseRClickY = GetMouseY();
 						
-					//Used for finding index of clicked array
-					worldIndexOfArrayX = ((mouseRClickX - worldPosX) / lineDistance) / ARR_SIZE;
-					worldIndexOfArrayY = ((mouseRClickY - worldPosY) / lineDistance) / ARR_SIZE;
-
-					if (mouseRClickX - worldPosX < 0)
-						--worldIndexOfArrayX;
-					if (mouseRClickY - worldPosY < 0)
-						--worldIndexOfArrayY;
+					worldIndexOfArrayX = indexOfChunkFromCoord(mouseRClickX, worldPosX, lineDistance);
+					worldIndexOfArrayY = indexOfChunkFromCoord(mouseRClickY, worldPosY, lineDistance);
 						
 
 					coordToFind[0] = worldIndexOfArrayX;
@@ -174,12 +169,8 @@ void drawGrid () {
 						}
 					}
 
-					insertIndexOfCellX = ((mouseRClickX - worldPosX) / lineDistance) % ARR_SIZE;
-					insertIndexOfCellY = ((mouseRClickY - worldPosY) / lineDistance) % ARR_SIZE;
-					if (mouseRClickX - worldPosX < 0)
-						insertIndexOfCellX += 49;	
-					if (mouseRClickY - worldPosY < 0)
-						insertIndexOfCellY += 49;	
+					insertIndexOfCellX = arrayIndexFromCoord(mouseRClickX, worldPosX, lineDistance);
+					insertIndexOfCellY = arrayIndexFromCoord(mouseRClickY, worldPosY, lineDistance);
 
 					curChunk->cells[insertIndexOfCellY][insertIndexOfCellX].alive = !curChunk->cells[insertIndexOfCellY][insertIndexOfCellX].alive;	
 					curChunk->cellsToTest[curChunk->cellsToTestCount][0] = insertIndexOfCellX;
@@ -246,6 +237,15 @@ void drawGrid () {
 			if (IsKeyDown(KEY_C) && IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
 				newCopy = 0;
 				//Copy selected cells here
+				if (selectedArea != NULL) {
+					free(selectedArea);
+				}
+
+				selectedArea = copySelectionArea(selectionStartX, selectionStartY, GetMouseX(), GetMouseY(), firstChunk, &selectionSizeX, &selectionSizeY, worldPosX, worldPosY, lineDistance);
+				
+			}
+			if (IsKeyDown(KEY_V) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+				pasteSelectionArea(selectedArea, GetMouseX(), GetMouseY(), firstChunk, selectionSizeX, selectionSizeY, worldPosX, worldPosY, lineDistance);
 			}
 
 		EndDrawing();
@@ -254,26 +254,5 @@ void drawGrid () {
 
 int main (void) {
 	drawGrid();
-
-}
-void drawSelectionRect (int x1, int y1, int x2, int y2) {
-	float thickness = 5.5;
-	Vector2 pos1, pos2;
-	
-	pos1.x = x1; pos1.y = y1;
-	pos2.x = x2; pos2.y = y1;
-	DrawLineEx(pos1, pos2, thickness, RED);
-
-	pos1.x = x1; pos1.y = y2;
-	pos2.x = x2; pos2.y = y2;
-	DrawLineEx(pos1, pos2, thickness, RED);
-
-	pos1.x = x1; pos1.y = y1;
-	pos2.x = x1; pos2.y = y2;
-	DrawLineEx(pos1, pos2, thickness, RED);
-	
-	pos1.x = x2; pos1.y = y1;
-	pos2.x = x2; pos2.y = y2;
-	DrawLineEx(pos1, pos2, thickness, RED);
 
 }
