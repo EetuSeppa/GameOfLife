@@ -29,8 +29,9 @@ Chunk * renderChunk(Chunk * lastChunk, int xCoord, int yCoord);
 int indexOfChunkFromCoord (int clickCoord, int worldPos, int lineDistance);
 int arrayIndexFromCoord (int clickCoord, int worldPos, int lineDistance);
 void drawSelectionRect (int x1, int y1, int x2, int y2);
-Cell * copySelectionArea (int x1, int y1, int x2, int y2, Chunk * firstChunk, int * sizeX, int * sizeY, int worldPosX, int worldPosY, int lineDistance);
+int * copySelectionArea (int x1, int y1, int x2, int y2, Chunk * firstChunk, int * sizeX, int * sizeY, int worldPosX, int worldPosY, int lineDistance);
 Chunk * findIndex (int elementToSearch[], Chunk * firstChunk);
-void pasteSelectionArea (Cell * copiedArea, int x1, int x2, Chunk * firstChunk, int sizeX, int sizeY, int worldPosX, int worldPosY, int lineDistance);
+void pasteSelectionArea (int * copiedArea, int x1, int x2, Chunk * firstChunk, int sizeX, int sizeY, int worldPosX, int worldPosY, int lineDistance);
+int found (int elementToSearch[], int arr[][2], int limit);
 
 #endif

@@ -27,6 +27,7 @@
 		-Needs faster algorithm for searching. (Is searching really needed?)
 
 */
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "raylib.h"
@@ -51,7 +52,7 @@ void drawGrid () {
 	int coordToFind[2];
 	double zoom;
 	Chunk * firstChunk, * lastChunk, * curChunk;
-	Cell * selectedArea;
+	int * selectedArea;
 
 	selectedArea = NULL;
 	lineDistance = INITIAL_GRID_WIDTH;
@@ -236,16 +237,22 @@ void drawGrid () {
 			}
 			if (IsKeyDown(KEY_C) && IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
 				newCopy = 0;
-				//Copy selected cells here
+
 				if (selectedArea != NULL) {
 					free(selectedArea);
 				}
 
-				selectedArea = copySelectionArea(selectionStartX, selectionStartY, GetMouseX(), GetMouseY(), firstChunk, &selectionSizeX, &selectionSizeY, worldPosX, worldPosY, lineDistance);
+				selectedArea = copySelectionArea(selectionStartX, selectionStartY, 
+							   GetMouseX(), GetMouseY(), firstChunk, &selectionSizeX, 
+							   &selectionSizeY, worldPosX, worldPosY, lineDistance);
+
 				
 			}
 			if (IsKeyDown(KEY_V) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
 				pasteSelectionArea(selectedArea, GetMouseX(), GetMouseY(), firstChunk, selectionSizeX, selectionSizeY, worldPosX, worldPosY, lineDistance);
+				
+
+				
 			}
 
 		EndDrawing();

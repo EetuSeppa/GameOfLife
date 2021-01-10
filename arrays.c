@@ -8,21 +8,6 @@
 
 void chunkCollision (Chunk * chunk, Chunk ** lastChunk, Chunk * firstChunk, int cellXCoord, int cellYCoord, int *renderedChunkCount);
 
-//Need a faster way of searching, perhaps sorting first and then binary searching for x coordinate
-int found (int elementToSearch[], int arr[][2], int limit) {
-	int i, found;	
-	found = 0;
-	for (i = 0; i < limit; ++i) {
-		if(arr[i][0] == elementToSearch[0]) {
-			if(arr[i][1] == elementToSearch[1]) {
-				found = 1;
-				break;
-			}
-		}
-	}
-
-	return found;
-}
 void copyArray (Chunk * chunk, int arr2[][2]);
 void printInfo (Chunk chunk) {
 	int i, j;
