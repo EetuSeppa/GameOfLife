@@ -118,6 +118,7 @@ void pasteSelectionArea (int * copiedArea, int x1, int y1, Chunk * firstChunk, i
 			destinationChunk->cellsToTestCount += 1; 
 		}
 	}
+	free(tempSelection);
 }
 
 void initializeZeroArray (Cell arr[][ARR_SIZE]) {
