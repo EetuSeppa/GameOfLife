@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "helpers.h"
 #include "raylib.h"
+#include <math.h>
 
 //Need a faster way of searching, perhaps sorting first and then binary searching for x coordinate
 int found (int elementToSearch[], int arr[][2], int limit) {
@@ -40,11 +41,11 @@ Chunk * findIndex (int elementToSearch[], Chunk * firstChunk) {
 }
 
 //Allocates memory for new chunk, increments chunkIndex
-Chunk * renderChunk(Chunk * lastChunk, int xCoord, int yCoord) {
+Chunk * renderChunk(Chunk ** lastChunk, int xCoord, int yCoord) {
 	Chunk * curChunk;
 
 	curChunk = malloc(sizeof(Chunk));
-	lastChunk->nextChunk = curChunk;
+	(*lastChunk)->nextChunk = curChunk;
 	curChunk->coord[0] = xCoord;
 	curChunk->coord[1] = yCoord;
 	curChunk->cellsToTestCount = 0;
@@ -52,21 +53,24 @@ Chunk * renderChunk(Chunk * lastChunk, int xCoord, int yCoord) {
 	
 	curChunk->nextChunk = NULL;
 	
+	*lastChunk = curChunk;
 	return curChunk;
 }
+
 int * copySelectionArea (int x1, int y1, int x2, int y2, Chunk * firstChunk, int * sizeX, int * sizeY, int worldPosX, int worldPosY, int lineDistance) {
 	//Assume that selection end indices are always bigger than starts for now
-	int curChunkIndexX, curChunkIndexY, startPosX, startPosY, endPosX, endPosY, i, j;
+	int curChunkIndexX, curChunkIndexY, startPosX, startPosY, endPosX, endPosY, i, j, currentArrPosX, currentArrPosY;
 	int searchArr[2];
 	
-	Chunk * selectionChunk;
+	Chunk * initialSelectionChunk;
+	Chunk * currentSelectionChunk;
 	curChunkIndexX = indexOfChunkFromCoord (x1, worldPosX, lineDistance);
-	curChunkIndexY = indexOfChunkFromCoord (y1, worldPosX, lineDistance);
+	curChunkIndexY = indexOfChunkFromCoord (y1, worldPosY, lineDistance);
 
 	searchArr[0] = curChunkIndexX;
 	searchArr[1] = curChunkIndexY;
 
-	selectionChunk = findIndex(searchArr, firstChunk);
+	initialSelectionChunk = findIndex(searchArr, firstChunk);
 
 	startPosX = arrayIndexFromCoord (x1, worldPosX, lineDistance);
 	startPosY = arrayIndexFromCoord (y1, worldPosY, lineDistance);
@@ -74,24 +78,50 @@ int * copySelectionArea (int x1, int y1, int x2, int y2, Chunk * firstChunk, int
 	endPosX = arrayIndexFromCoord (x2, worldPosX, lineDistance);
 	endPosY = arrayIndexFromCoord (y2, worldPosY, lineDistance);
 
-	*sizeX = endPosX - startPosX;	
-	*sizeY = endPosY - startPosY;	
+	*sizeX = (abs(((x1 - worldPosX % lineDistance) / lineDistance) - ((x2 - worldPosX % lineDistance) / lineDistance))) + 1;
+	*sizeY = (abs(((y1 - worldPosY % lineDistance) / lineDistance) - ((y2 - worldPosY % lineDistance) / lineDistance))) + 1;
 
 	int (*selectionArr)[*sizeX] = malloc(sizeof(int[*sizeY][*sizeX]));
 
+	//Logic for copying from arrays
+	currentArrPosX = startPosX;
+	currentArrPosY = startPosY;
+	currentSelectionChunk = initialSelectionChunk;
 	for (i = 0; i < *sizeY; ++i) {
-		for (j = 0; j < *sizeX; ++j) {
-			selectionArr[i][j] = selectionChunk->cells[startPosY + i][startPosX + j].alive;
+		currentArrPosX = startPosX;
+		if (currentArrPosY > ARR_SIZE - 1) {
+			currentArrPosY = 0;
+			searchArr[1]++;
+			currentSelectionChunk = findIndex(searchArr, firstChunk);
+			if (currentSelectionChunk == NULL) {
+				break;
+			}
 		}
+		for (j = 0; j < *sizeX; ++j) {
+			if (currentArrPosX > ARR_SIZE - 1) {
+				searchArr[0]++;
+				currentSelectionChunk = findIndex(searchArr, firstChunk);
+				if (currentSelectionChunk == NULL) {
+					break;
+				}
+				searchArr[0]--;	
+				currentArrPosX = 0;
+			}
+			selectionArr[i][j] = currentSelectionChunk->cells[currentArrPosY][currentArrPosX].alive;
+			++currentArrPosX;
+		}
+		++currentArrPosY;
+		currentSelectionChunk = findIndex(searchArr, firstChunk);
 	}
 
 
 	return *selectionArr;	
 }
 
-void pasteSelectionArea (int * copiedArea, int x1, int y1, Chunk * firstChunk, int sizeX, int sizeY, int worldPosX, int worldPosY, int lineDistance) {
-	int i, j, curChunkIndexX, curChunkIndexY, startIndexX, startIndexY;
+void pasteSelectionArea (int * copiedArea, int x1, int y1, Chunk * firstChunk, Chunk ** lastChunk, int sizeX, int sizeY, int worldPosX, int worldPosY, int lineDistance, int * renderedChunkCount) {
+	int i, j, curChunkIndexX, curChunkIndexY, startIndexX, startIndexY, curPosX, curPosY;
 	Chunk * destinationChunk;
+	Chunk * curDestinationChunk;
 	int searchArr[2];
 
 	//Have to do this for pointer arithmetic to work properly
@@ -104,19 +134,47 @@ void pasteSelectionArea (int * copiedArea, int x1, int y1, Chunk * firstChunk, i
 	searchArr[0] = curChunkIndexX;	
 	searchArr[1] = curChunkIndexY;	
 	destinationChunk = findIndex(searchArr, firstChunk);
+	if (destinationChunk == NULL) {
+		destinationChunk = renderChunk(lastChunk, curChunkIndexX, curChunkIndexY);
+		*renderedChunkCount += 1;
+
+	}
 
 	startIndexX = arrayIndexFromCoord (x1, worldPosX, lineDistance);
 	startIndexY = arrayIndexFromCoord (y1, worldPosY, lineDistance);
 
+	curPosY = startIndexY;
+	curDestinationChunk = destinationChunk;
 	for (i = 0; i < sizeY; ++i) {
-		for (j = 0; j < sizeX; ++j) {
-			destinationChunk->cells[startIndexY + i][startIndexX + j].alive = tempSelection[i][j];
-			searchArr[0] = startIndexX + j;
-			searchArr[1] = startIndexY + j;
-			destinationChunk->cellsToTest[destinationChunk->cellsToTestCount][0] = startIndexX + j; 
-			destinationChunk->cellsToTest[destinationChunk->cellsToTestCount][1] = startIndexY + i; 
-			destinationChunk->cellsToTestCount += 1; 
+		curPosX = startIndexX;
+		if (curPosY > ARR_SIZE - 1) {
+			++searchArr[1];
+			curDestinationChunk = findIndex(searchArr, firstChunk);
+			if (curDestinationChunk == NULL) {
+				curDestinationChunk = renderChunk(lastChunk, searchArr[0], searchArr[1]);
+				*renderedChunkCount += 1;
+			}
+			curPosY = 0;
 		}
+		for (j = 0; j < sizeX; ++j) {
+			if (curPosX > ARR_SIZE - 1) {
+				++searchArr[0];
+				curDestinationChunk = findIndex(searchArr, firstChunk);
+				if (curDestinationChunk == NULL) {
+					curDestinationChunk = renderChunk(lastChunk, searchArr[0], searchArr[1]);
+					*renderedChunkCount += 1;
+				}
+				curPosX = 0;
+				--searchArr[0];
+			}
+			curDestinationChunk->cells[curPosY][curPosX].alive = tempSelection[i][j];
+			curDestinationChunk->cellsToTest[curDestinationChunk->cellsToTestCount][0] = curPosX; 
+			curDestinationChunk->cellsToTest[curDestinationChunk->cellsToTestCount][1] = curPosY; 
+			curDestinationChunk->cellsToTestCount += 1; 
+			curPosX++;
+		}
+		curPosY++;
+		curDestinationChunk = findIndex(searchArr, firstChunk);
 	}
 	free(tempSelection);
 }

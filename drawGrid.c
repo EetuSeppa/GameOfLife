@@ -44,7 +44,8 @@ void drawGrid () {
 
 	//Chunk *renderedChunks[50];
 
-	int lineDistance, i, j, k, drawnPosX, drawnPosY, worldPosX, worldPosY, mouseRClickX, mouseRClickY, rectPosX, rectPosY;
+	int lineDistance, i, j, k, drawnPosX, drawnPosY, mouseRClickX, mouseRClickY, rectPosX, rectPosY;
+	long long int worldPosX, worldPosY;
 	int initMouseX, initMouseY, mouseOffsetX, mouseOffsetY, prevMouseOffsetX, prevMouseOffsetY;
 	int insert, worldIndexOfArrayX, worldIndexOfArrayY, insertIndexOfCellX, insertIndexOfCellY, frameCounter, mouseOffsetPerFrameX, mouseOffsetPerFrameY;
 	int renderedChunkCount, indexOfCurArr, rectX, rectY;
@@ -164,7 +165,7 @@ void drawGrid () {
 						++renderedChunkCount;
 					} else {
 						if ((curChunk = findIndex(coordToFind, firstChunk)) == NULL) {
-							lastChunk = renderChunk(lastChunk, worldIndexOfArrayX, worldIndexOfArrayY);
+							lastChunk = renderChunk(&lastChunk, worldIndexOfArrayX, worldIndexOfArrayY);
 							curChunk = lastChunk;
 							++renderedChunkCount;
 						}
@@ -250,7 +251,7 @@ void drawGrid () {
 				
 			}
 			if (IsKeyDown(KEY_V) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-				pasteSelectionArea(selectedArea, GetMouseX(), GetMouseY(), firstChunk, selectionSizeX, selectionSizeY, worldPosX, worldPosY, lineDistance);
+				pasteSelectionArea(selectedArea, GetMouseX(), GetMouseY(), firstChunk, &lastChunk, selectionSizeX, selectionSizeY, worldPosX, worldPosY, lineDistance, &renderedChunkCount);
 				
 
 				

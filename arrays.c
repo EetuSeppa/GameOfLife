@@ -201,9 +201,8 @@ void chunkCollision (Chunk * chunk, Chunk ** lastChunk, Chunk * firstChunk, int 
 		coordToFind[1] = chunk->coord[1] + neighborCoordsDest[i][1];
 
 		if ((curChunk = findIndex(coordToFind, firstChunk)) == NULL) {
-			curChunk = renderChunk(*lastChunk, coordToFind[0], coordToFind[1]);
+			curChunk = renderChunk(lastChunk, coordToFind[0], coordToFind[1]);
 			*renderedChunkCount += 1;
-			*lastChunk = curChunk;
 			//printf("%d,%d coords of chunk\n", coordToFind[0], coordToFind[1]);
 		}
 		//Add alive states of neighbor chunk cells

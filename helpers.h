@@ -25,13 +25,13 @@ typedef struct chunk {
 } Chunk;
 
 void initializeZeroArray (Cell arr[][ARR_SIZE]);
-Chunk * renderChunk(Chunk * lastChunk, int xCoord, int yCoord);
+Chunk * renderChunk(Chunk ** lastChunk, int xCoord, int yCoord);
 int indexOfChunkFromCoord (int clickCoord, int worldPos, int lineDistance);
 int arrayIndexFromCoord (int clickCoord, int worldPos, int lineDistance);
 void drawSelectionRect (int x1, int y1, int x2, int y2);
 int * copySelectionArea (int x1, int y1, int x2, int y2, Chunk * firstChunk, int * sizeX, int * sizeY, int worldPosX, int worldPosY, int lineDistance);
 Chunk * findIndex (int elementToSearch[], Chunk * firstChunk);
-void pasteSelectionArea (int * copiedArea, int x1, int x2, Chunk * firstChunk, int sizeX, int sizeY, int worldPosX, int worldPosY, int lineDistance);
+void pasteSelectionArea (int * copiedArea, int x1, int x2, Chunk * firstChunk, Chunk ** lastChunk, int sizeX, int sizeY, int worldPosX, int worldPosY, int lineDistance, int * renderedChunkCount);
 int found (int elementToSearch[], int arr[][2], int limit);
 
 #endif
