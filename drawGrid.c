@@ -27,11 +27,12 @@
 		-Needs faster algorithm for searching. (Is searching really needed?)
 
 */
+#include "drawGrid.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "raylib.h"
-#include "arrays.c"
+#include "arrays.h"
 #include "helpers.h"
 
 #define SCREEN_WIDTH 1000
@@ -39,7 +40,6 @@
 #define INITIAL_GRID_WIDTH 15
 #define CHUNK_UPDATE_RATE 40
 
-void drawSelectionRect (int x1, int y1, int x2, int y2);
 void drawGrid () {		
 
 	//Chunk *renderedChunks[50];
@@ -261,7 +261,3 @@ void drawGrid () {
 	}
 }
 
-int main (void) {
-	drawGrid();
-
-}

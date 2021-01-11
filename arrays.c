@@ -1,10 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "helpers.h"
-
-//Problem might be with carrying cells to test to next generation
-
-//TODO: Getting too many neighbors
+#include "arrays.h"
 
 void chunkCollision (Chunk * chunk, Chunk ** lastChunk, Chunk * firstChunk, int cellXCoord, int cellYCoord, int *renderedChunkCount);
 
