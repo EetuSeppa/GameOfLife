@@ -229,11 +229,12 @@ void drawGrid () {
 			}
 			if (IsKeyDown(KEY_C) && newCopy) {
 				drawSelectionRect(
-					((selectionStartX/lineDistance) * lineDistance) + worldPosX % lineDistance,
-					((selectionStartY/lineDistance) * lineDistance) + worldPosY % lineDistance,
-					(GetMouseX()/lineDistance) * lineDistance + worldPosX % lineDistance,
-					(GetMouseY()/lineDistance) * lineDistance + worldPosY % lineDistance
+					(((selectionStartX - worldPosX % lineDistance)/ lineDistance) * lineDistance) + worldPosX % lineDistance,
+					(((selectionStartY - worldPosY % lineDistance)/ lineDistance) * lineDistance) + worldPosY % lineDistance,
+					(((GetMouseX() - worldPosX % lineDistance)/ lineDistance + 1) * lineDistance) + worldPosX % lineDistance,
+					(((GetMouseY() - worldPosY % lineDistance)/ lineDistance + 1) * lineDistance) + worldPosY % lineDistance
 				);
+
 			}
 			if (IsKeyDown(KEY_C) && IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
 				newCopy = 0;
