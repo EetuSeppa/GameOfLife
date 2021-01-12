@@ -60,7 +60,7 @@ Chunk * readRLEFile (char fileName[], Chunk ** lastChunkOfList) {
 			numToken = strToNum(numTokenStr);
 			typeToken = line[i];
 			++i;
-			if (typeToken == '\n')
+			if (typeToken == '\n' || typeToken == '!')
 				break;
 
 			for (; numToken >= 0; --numToken) {

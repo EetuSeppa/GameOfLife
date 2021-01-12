@@ -21,6 +21,7 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 	int insert, worldIndexOfArrayX, worldIndexOfArrayY, insertIndexOfCellX, insertIndexOfCellY, frameCounter, mouseOffsetPerFrameX, mouseOffsetPerFrameY;
 	int renderedChunkCount, indexOfCurArr, rectX, rectY;
 	int selectionStartX, selectionStartY, newCopy, selectionSizeX, selectionSizeY;
+	int gridDrawnBool;
 	int coordToFind[2];
 	double zoom;
 	Chunk * firstChunk, * lastChunk, * curChunk;
@@ -41,6 +42,7 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 	frameCounter = CHUNK_UPDATE_RATE;
 	renderedChunkCount = 0;
 	newCopy = 0;
+	gridDrawnBool = 1;
 
 	if (chunkList != NULL) {
 		firstChunk = chunkList;
@@ -77,6 +79,13 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 		
 		zoom = GetMouseWheelMove();
 		lineDistance -= (int)zoom;
+		if (lineDistance < 1) {
+			lineDistance = 1;
+		}
+		if (lineDistance <= 2) {
+			gridDrawnBool = 0;
+
+		}
 
 
 		BeginDrawing();
@@ -89,21 +98,19 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 			drawnPosX = worldPosX % lineDistance; 
 			drawnPosY = worldPosY % lineDistance;
 			
-			int drawnLinesX = 0;
-			int drawnLinesY = 0;
-			while (drawnPosX < SCREEN_WIDTH) {
-				if (drawnPosX <= SCREEN_WIDTH) {
-					DrawLine(drawnPosX, 0, drawnPosX, SCREEN_HEIGHT, GRAY);
-					++drawnLinesX;
-				}
-				if (drawnPosY <= SCREEN_HEIGHT) {
-					DrawLine(0, drawnPosY, SCREEN_WIDTH, drawnPosY, GRAY);
-					++drawnLinesY;
-				}
+			if (gridDrawnBool) {
+				while (drawnPosX < SCREEN_WIDTH) {
+					if (drawnPosX <= SCREEN_WIDTH) {
+						DrawLine(drawnPosX, 0, drawnPosX, SCREEN_HEIGHT, GRAY);
+					}
+					if (drawnPosY <= SCREEN_HEIGHT) {
+						DrawLine(0, drawnPosY, SCREEN_WIDTH, drawnPosY, GRAY);
+					}
 	
-				drawnPosX += lineDistance;
-				drawnPosY += lineDistance;
+					drawnPosX += lineDistance;
+					drawnPosY += lineDistance;
 				
+				}
 			}
 			if (IsKeyPressed(32) && insert){
 				insert = 0;
@@ -188,23 +195,26 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 				}
 			}
 
-				if (renderedChunkCount > 0) {
-					curChunk = firstChunk;
-					 do {
-						for (j = 0; j < curChunk->cellsToTestCount; ++j) {
-								//TODO: only render if coords are inside screen
-								curChunk->cells[curChunk->cellsToTest[j][1]][curChunk->cellsToTest[j][0]].aliveNeighbors = 0;
-								if (curChunk->cells[curChunk->cellsToTest[j][1]][curChunk->cellsToTest[j][0]].alive) {
-									rectX = (lineDistance * ARR_SIZE * curChunk->coord[0]) + worldPosX + curChunk->cellsToTest[j][0] * lineDistance;
-									rectY = (lineDistance * ARR_SIZE * curChunk->coord[1]) + worldPosY + curChunk->cellsToTest[j][1] * lineDistance;
-									DrawRectangle(rectX, rectY, lineDistance, lineDistance, GRAY);
-						 		}
-						}
-						if (curChunk->nextChunk != NULL)
-							curChunk = curChunk->nextChunk;
-						else 
-							break;
-					} while (1);
+			if (renderedChunkCount > 0) {
+				curChunk = firstChunk;
+				 do {
+					for (j = 0; j < curChunk->cellsToTestCount; ++j) {
+							//TODO: only render if coords are inside screen
+							curChunk->cells[curChunk->cellsToTest[j][1]][curChunk->cellsToTest[j][0]].aliveNeighbors = 0;
+							if (curChunk->cells[curChunk->cellsToTest[j][1]][curChunk->cellsToTest[j][0]].alive) {
+								rectX = (lineDistance * ARR_SIZE * curChunk->coord[0]) + worldPosX + curChunk->cellsToTest[j][0] * lineDistance;
+								rectY = (lineDistance * ARR_SIZE * curChunk->coord[1]) + worldPosY + curChunk->cellsToTest[j][1] * lineDistance;
+								DrawRectangle(rectX, rectY, lineDistance, lineDistance, GRAY);
+				 			}
+					}
+					if (curChunk->nextChunk != NULL)
+						curChunk = curChunk->nextChunk;
+					else 
+						break;
+				} while (1);
+			}
+			if (IsKeyPressed(KEY_G)) {
+				gridDrawnBool = !gridDrawnBool;	
 			}
 			if (IsKeyDown(KEY_C) && newCopy) {
 				drawSelectionRect(
