@@ -1,32 +1,3 @@
-/*
-	
-	TODO:
-	-Change array of rendered chunks to linked list
-		-Requires changes in every function
-
-	-Implement pausing evolution and inserting cells by pressing space
-
-	-Implemented copying and pasting
-		-When c key is pressed and mouse is dragged selection is active
-		-When c key is released cells inside selection get put in a temporary array
-		-When v and left mouse is pressed this temporary array is pasted
-
-	-Free empty arrays
-
-	-If alive cell "collides" with corner or edge of array, start checking in next array.
-		-If collision in edges happens, check if array is alive yet, if not malloc space for array and insert edge cells to cellsToCheck of new array. If array is already rendered, just do the latter.  	
-
-
-
-
-	-v Needs logic for finding correct index of colliding array -v Implement placing of cells into other arrays besides center array.
-		-Needs functionality for allocating memory for new arrays and giving arrays correct coordinates
-		-Needed also: testing alive conditions of multiple arrays
-
-	-v Implement smart checking of cells inside each array.
-		-Needs faster algorithm for searching. (Is searching really needed?)
-
-*/
 #include "drawGrid.h"
 #include <string.h>
 #include <stdio.h>
@@ -38,9 +9,9 @@
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 700
 #define INITIAL_GRID_WIDTH 15
-#define CHUNK_UPDATE_RATE 40
+#define CHUNK_UPDATE_RATE 5
 
-void drawGrid () {		
+void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {		
 
 	//Chunk *renderedChunks[50];
 
@@ -71,10 +42,17 @@ void drawGrid () {
 	renderedChunkCount = 0;
 	newCopy = 0;
 
+	if (chunkList != NULL) {
+		firstChunk = chunkList;
+		lastChunk = lastChunkOfList;
+		curChunk = firstChunk;
+		renderedChunkCount = 1;
+
+	}
+
 	while (!WindowShouldClose()) {
 		
 
-		//99 C
 		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !IsKeyDown(KEY_C)) {
 			initMouseX = GetMouseX() - worldPosX;
 			initMouseY = GetMouseY() - worldPosY;
@@ -150,7 +128,7 @@ void drawGrid () {
 					coordToFind[0] = worldIndexOfArrayX;
 					coordToFind[1] = worldIndexOfArrayY;
 					//Fix to return pointer to chunk
-					if (renderedChunkCount == 0) {
+					if (renderedChunkCount == 0 && chunkList == NULL) {
 						firstChunk = malloc(sizeof(Chunk));
 
 						firstChunk->coord[0] = worldIndexOfArrayX;
