@@ -12,5 +12,8 @@ void testAliveNeighbors (Chunk * chunk, Chunk ** lastChunk, Chunk * firstChunk, 
 int cellAliveState (Chunk * chunk);
 void copyArray (Chunk * chunk, int arr[][2]);
 void chunkCollision (Chunk * chunk, Chunk ** lastChunk, Chunk * firstChunk, int cellXCoord, int cellYCoord, int *renderedChunkCount);
+void addAliveStatesToNeighbors (int neighborChunkCoords[3][2], int cellCoordsInNeighbors[3][3][2], int neighborChunkCount, Chunk * chunk, int cellXCoord, int cellYCoord, Chunk * firstChunk, Chunk ** lastChunk, int *rendredChunkCount);
+void initGlobalVariable(void);
+extern NeighChunkStruct * collisionNeighbor;
 
 #endif

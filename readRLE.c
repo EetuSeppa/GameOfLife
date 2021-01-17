@@ -49,7 +49,7 @@ Chunk * readRLEFile (char fileName[], Chunk ** lastChunkOfList) {
 	putchar('\n');
 	while (feof(fp) == 0) {
 		i = 0;
-		while (1) {
+		while (typeToken != '!') {
 			tokenPos = 0;
 			while (line[i] >= '0' && line[i] <= '9') {
 				numTokenStr[tokenPos] = line[i];
@@ -60,7 +60,7 @@ Chunk * readRLEFile (char fileName[], Chunk ** lastChunkOfList) {
 			numToken = strToNum(numTokenStr);
 			typeToken = line[i];
 			++i;
-			if (typeToken == '\n' || typeToken == '!')
+			if (typeToken == '\n')
 				break;
 
 			for (; numToken >= 0; --numToken) {

@@ -235,3 +235,89 @@ void drawSelectionRect (int x1, int y1, int x2, int y2) {
 	DrawLineEx(pos1, pos2, thickness, RED);
 
 }
+
+void initializeNeighborCoords (NeighChunkStruct **copyDest) {
+	*copyDest = malloc(sizeof(NeighChunkStruct));
+
+	NeighChunkStruct neighCoords = { 
+		.upLeft = { 
+			.neighChunkCoords = {{0, -1}, {-1, 0}, {-1, -1}},
+			.neighCellsInNeighChunks = {{{0, ARR_SIZE - 1}, {1, ARR_SIZE - 1}, 
+		    {-ARR_SIZE - 2, -ARR_SIZE - 2}}, 
+			{{ARR_SIZE - 1, 0}, {ARR_SIZE - 1, 1}, 
+			{-ARR_SIZE - 2, -ARR_SIZE - 2}}, 
+			{{ARR_SIZE - 1, ARR_SIZE - 1}, 
+			{-ARR_SIZE - 2, -ARR_SIZE - 2}}},
+			.neighChunkCount = 3
+		},
+
+		 .upRight = { 
+		 	.neighChunkCoords = {{0, -1}, {1, -1}, {1, 0}},
+			.neighCellsInNeighChunks = {{{0, ARR_SIZE - 1}, {-1, ARR_SIZE - 1}, 
+			{-ARR_SIZE - 2, -ARR_SIZE - 2}}, 
+			{{-ARR_SIZE + 1, ARR_SIZE - 1}, 
+			{-ARR_SIZE - 2, -ARR_SIZE - 2}}, 
+			{{-ARR_SIZE + 1, 0}, 
+			{-ARR_SIZE + 1, 1}, 
+			{-ARR_SIZE - 2, -ARR_SIZE - 2}}},
+			.neighChunkCount = 3
+	},
+
+
+		 .downLeft = { 
+		 	.neighChunkCoords = {{0, 1}, {-1, 1}, {-1, 0}},
+			.neighCellsInNeighChunks = {{{0, -ARR_SIZE + 1}, {1, -ARR_SIZE + 1}, 
+			{-ARR_SIZE - 2, -ARR_SIZE - 2}}, 
+			{{ARR_SIZE - 1, -ARR_SIZE + 1}, 
+			{-ARR_SIZE - 2, -ARR_SIZE - 2}}, 
+			{{ARR_SIZE - 1, 0}, 
+			{ARR_SIZE - 1, -1}, 
+			{-ARR_SIZE - 2, -ARR_SIZE - 2}}},
+			.neighChunkCount = 3
+	},
+
+		 .downRight = { 
+		 	.neighChunkCoords = {{1, 0}, {1, 1}, {0, 1}},
+			.neighCellsInNeighChunks = {{{-ARR_SIZE + 1, 0}, {-ARR_SIZE + 1, - 1}, 
+			{-ARR_SIZE - 2, -ARR_SIZE - 2}}, 
+			{{-ARR_SIZE + 1, -ARR_SIZE + 1}, 
+			{-ARR_SIZE - 2, -ARR_SIZE - 2}}, 
+			{{0, -ARR_SIZE + 1}, 
+			{-1, -ARR_SIZE + 1}, 
+			{-ARR_SIZE - 2, -ARR_SIZE - 2}}},
+			.neighChunkCount = 3
+	},
+
+		 .up = { 
+		 	.neighChunkCoords = {{0, -1}},
+			.neighCellsInNeighChunks = {{{-1, ARR_SIZE - 1}, {0, ARR_SIZE - 1}, 
+			{1, ARR_SIZE - 1}}, 
+			{{-ARR_SIZE - 2, -ARR_SIZE - 2}}},
+			.neighChunkCount = 1
+	},
+
+		 .right = { 
+		 	.neighChunkCoords = {{1, 0}},
+			.neighCellsInNeighChunks = {{{-ARR_SIZE + 1, -1}, {-ARR_SIZE + 1, 0}, 
+			{-ARR_SIZE + 1, 1}}, 
+			{{-ARR_SIZE - 2, -ARR_SIZE - 2}}},
+			.neighChunkCount = 1
+	},
+
+		 .down = { 
+		 	.neighChunkCoords = {{0, 1}},
+			.neighCellsInNeighChunks = {{{-1, -ARR_SIZE + 1}, {0, -ARR_SIZE + 1}, 
+			{1, -ARR_SIZE + 1}}, 
+			{{-ARR_SIZE - 2, -ARR_SIZE - 2}}},
+			.neighChunkCount = 1
+	},
+
+		 .left = { 
+		 	.neighChunkCoords = {{-1, 0}},
+			.neighCellsInNeighChunks = {{{ARR_SIZE - 1, -1}, {ARR_SIZE - 1, 0}, 
+			{ARR_SIZE - 1, 1}}, 
+			{{-ARR_SIZE - 2, -ARR_SIZE - 2}}},
+			.neighChunkCount = 1
+	}};
+	memcpy(*copyDest, &neighCoords, sizeof(NeighChunkStruct));
+}

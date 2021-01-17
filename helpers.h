@@ -2,11 +2,18 @@
 #define HELP_H_
 #define ARR_SIZE 50
 
-typedef struct neighborChunks {
-	
+typedef struct neighChunkCoords {
+	int neighChunkCoords[3][2];
+	int neighCellsInNeighChunks[3][3][2];
+	int neighChunkCount;
+
+} NeighChunkCoords;
+
+typedef struct neighChunkStruct {
+	NeighChunkCoords upLeft, upRight, downLeft, downRight, left, up, right, down;
 
 
-} NeighborChunks;
+} NeighChunkStruct;
 
 typedef struct cell {
 	//1 for alive, 0 for dead
@@ -33,5 +40,6 @@ int * copySelectionArea (int x1, int y1, int x2, int y2, Chunk * firstChunk, int
 Chunk * findIndex (int elementToSearch[], Chunk * firstChunk);
 void pasteSelectionArea (int * copiedArea, int x1, int x2, Chunk * firstChunk, Chunk ** lastChunk, int sizeX, int sizeY, int worldPosX, int worldPosY, int lineDistance, int * renderedChunkCount);
 int found (int elementToSearch[], int arr[][2], int limit);
+void initializeNeighborCoords (NeighChunkStruct ** structToInit);
 
 #endif

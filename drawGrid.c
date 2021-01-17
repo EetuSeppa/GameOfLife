@@ -9,11 +9,12 @@
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 700
 #define INITIAL_GRID_WIDTH 15
-#define CHUNK_UPDATE_RATE 5
+#define CHUNK_UPDATE_RATE 1
 
 void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {		
 
 	//Chunk *renderedChunks[50];
+
 
 	int lineDistance, i, j, k, drawnPosX, drawnPosY, mouseRClickX, mouseRClickY, rectPosX, rectPosY;
 	long long int worldPosX, worldPosY;
@@ -24,13 +25,14 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 	int gridDrawnBool;
 	int coordToFind[2];
 	double zoom;
-	Chunk * firstChunk, * lastChunk, * curChunk;
+	Chunk * firstChunk, * lastChunk, * curChunk, * previousChunk;
 	int * selectedArea;
 
 	selectedArea = NULL;
 	lineDistance = INITIAL_GRID_WIDTH;
 
 	InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Game Of Life");
+	initGlobalVariable();
 
 	SetTargetFPS(60);
 	insert = 1;
@@ -150,7 +152,7 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 						++renderedChunkCount;
 					} else {
 						if ((curChunk = findIndex(coordToFind, firstChunk)) == NULL) {
-							lastChunk = renderChunk(&lastChunk, worldIndexOfArrayX, worldIndexOfArrayY);
+							renderChunk(&lastChunk, worldIndexOfArrayX, worldIndexOfArrayY);
 							curChunk = lastChunk;
 							++renderedChunkCount;
 						}
@@ -167,7 +169,6 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 				}
 			} else {
 				if (frameCounter == CHUNK_UPDATE_RATE) {
-					//printf("%d\n", renderedChunkCount);
 					curChunk = firstChunk;
 					while (1) {
 						testAliveNeighbors(curChunk, &lastChunk, firstChunk, &renderedChunkCount);
@@ -178,12 +179,20 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 							break;
 					} 
 					curChunk = firstChunk;
+					previousChunk = NULL;
 					while (1) {
-						cellAliveState(curChunk);
-						if (curChunk->nextChunk != NULL)
+						if ((cellAliveState(curChunk)) == 0) { //If cell has zero alive cells free it from list
+							if (previousChunk != NULL && curChunk->nextChunk != NULL) {  //Keep middle chunk in memory
+								previousChunk->nextChunk = curChunk->nextChunk;
+								free(curChunk);
+								curChunk = previousChunk->nextChunk;
+								continue;
+							}
+						}
+						if (curChunk->nextChunk != NULL) {
+							previousChunk = curChunk;
 							curChunk = curChunk->nextChunk;
-						else
-							break;
+						} else 	 { break; }
 					} 
 					--frameCounter;
 					//getchar();	
