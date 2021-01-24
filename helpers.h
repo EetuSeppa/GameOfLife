@@ -50,7 +50,7 @@ typedef struct chunk {
 	Cell cells[ARR_SIZE][ARR_SIZE]; //Array of cells
 	int cellsToTest[ARR_SIZE * ARR_SIZE][2]; //Cell coordinates that need to be tested
 	int cellsToTestCount; //Count of tested cells
-	int coord[2]; //Coordinate of chunk in world
+	int x, y; //Coordinates of chunk in world
 } Chunk;
 
 void initializeZeroArray (Cell arr[][ARR_SIZE]);

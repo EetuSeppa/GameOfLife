@@ -26,8 +26,8 @@ Chunk * findIndex (int elementToSearch[], Chunk * firstChunk) {
 	
 	curChunk = firstChunk;
 	do {
-		if 	(curChunk->coord[0] == elementToSearch[0]) {
-			if (curChunk->coord[1] == elementToSearch[1]) {
+		if 	(curChunk->x == elementToSearch[0]) {
+			if (curChunk->y == elementToSearch[1]) {
 				return curChunk;
 			}
 		}
@@ -46,8 +46,8 @@ Chunk * renderChunk(Chunk ** lastChunk, int xCoord, int yCoord) {
 
 	curChunk = malloc(sizeof(Chunk));
 	(*lastChunk)->nextChunk = curChunk;
-	curChunk->coord[0] = xCoord;
-	curChunk->coord[1] = yCoord;
+	curChunk->x = xCoord;
+	curChunk->y = yCoord;
 	curChunk->cellsToTestCount = 0;
 	initializeZeroArray(curChunk->cells);
 	
@@ -93,21 +93,19 @@ int * copySelectionArea (int x1, int y1, int x2, int y2, Chunk * firstChunk, int
 			currentArrPosY = 0;
 			searchArr[1]++;
 			currentSelectionChunk = findIndex(searchArr, firstChunk);
-			if (currentSelectionChunk == NULL) {
-				break;
-			}
 		}
 		for (j = 0; j < *sizeX; ++j) {
 			if (currentArrPosX > ARR_SIZE - 1) {
 				searchArr[0]++;
 				currentSelectionChunk = findIndex(searchArr, firstChunk);
-				if (currentSelectionChunk == NULL) {
-					break;
-				}
 				searchArr[0]--;	
 				currentArrPosX = 0;
 			}
-			selectionArr[i][j] = currentSelectionChunk->cells[currentArrPosY][currentArrPosX].alive;
+			if (currentSelectionChunk != NULL) {
+				selectionArr[i][j] = currentSelectionChunk->cells[currentArrPosY][currentArrPosX].alive;
+			} else {
+				selectionArr[i][j] = 0;
+			}
 			++currentArrPosX;
 		}
 		++currentArrPosY;

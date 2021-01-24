@@ -53,8 +53,8 @@ void initialTestedCells (Chunk * chunk, DrawnChunk *drawnVersion) {
 			}
 		}
 	}
-	drawnVersion->x = chunk->coord[0];
-	drawnVersion->y = chunk->coord[1];
+	drawnVersion->x = chunk->x;
+	drawnVersion->y = chunk->y;
 }
 void testAliveNeighbors (Chunk * chunk, Chunk ** lastChunk, Chunk * firstChunk, int *renderedChunkCount) {
 	int i, x, y, alive, xCoord, yCoord;
@@ -127,8 +127,8 @@ int cellAliveState (Chunk * chunk, DrawnChunk * drawnVersion) {
 		}
 	}
 	// printInfo(*chunk);
-	drawnVersion->x = chunk->coord[0];	
-	drawnVersion->y = chunk->coord[1];	
+	drawnVersion->x = chunk->x;	
+	drawnVersion->y = chunk->y;	
 	copyArray(chunk, tempArray);
 	chunk->cellsToTestCount = tempArrayIndex;
 	return aliveCount;
@@ -204,11 +204,11 @@ void addAliveStatesToNeighbors (int neighborChunkCoords[3][2], int cellCoordsInN
 
 	Chunk * curChunk;
 
-	chunkXCoord = chunk->coord[0];
-	chunkYCoord = chunk->coord[1];
+	chunkXCoord = chunk->x;
+	chunkYCoord = chunk->y;
 	for (i = 0; i < neighborChunkCount; ++i) {
-		coordToFind[0] = chunk->coord[0] + neighborChunkCoords[i][0];
-		coordToFind[1] = chunk->coord[1] + neighborChunkCoords[i][1];
+		coordToFind[0] = chunk->x + neighborChunkCoords[i][0];
+		coordToFind[1] = chunk->y + neighborChunkCoords[i][1];
 
 		if ((curChunk = findIndex(coordToFind, firstChunk)) == NULL) {
 			curChunk = renderChunk(lastChunk, coordToFind[0], coordToFind[1]);

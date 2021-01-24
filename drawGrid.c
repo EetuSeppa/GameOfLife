@@ -184,8 +184,8 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 					if (renderedChunkCount == 0 && chunkList == NULL) {
 						firstChunk = malloc(sizeof(Chunk));
 
-						firstChunk->coord[0] = worldIndexOfArrayX;
-						firstChunk->coord[1] = worldIndexOfArrayY;
+						firstChunk->x = worldIndexOfArrayX;
+						firstChunk->y = worldIndexOfArrayY;
 
 						firstChunk->cellsToTestCount = 0;
 						initializeZeroArray(firstChunk->cells);
@@ -244,8 +244,8 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 								//TODO: only render if coords are inside screen
 								curChunk->cells[curChunk->cellsToTest[j][1]][curChunk->cellsToTest[j][0]].aliveNeighbors = 0;
 								if (curChunk->cells[curChunk->cellsToTest[j][1]][curChunk->cellsToTest[j][0]].alive) {
-									rectX = (lineDistance * ARR_SIZE * curChunk->coord[0]) + worldPosX + curChunk->cellsToTest[j][0] * lineDistance;
-									rectY = (lineDistance * ARR_SIZE * curChunk->coord[1]) + worldPosY + curChunk->cellsToTest[j][1] * lineDistance;
+									rectX = (lineDistance * ARR_SIZE * curChunk->x) + worldPosX + curChunk->cellsToTest[j][0] * lineDistance;
+									rectY = (lineDistance * ARR_SIZE * curChunk->y) + worldPosY + curChunk->cellsToTest[j][1] * lineDistance;
 									DrawRectangle(rectX, rectY, lineDistance, lineDistance, GRAY);
 					 			}
 							}
@@ -281,26 +281,29 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 			if (IsKeyPressed(KEY_G)) {
 				gridDrawnBool = !gridDrawnBool;	
 			}
-			if (IsKeyDown(KEY_C) && newCopy) {
-				drawSelectionRect(
-					(((selectionStartX - worldPosX % lineDistance)/ lineDistance) * lineDistance) + worldPosX % lineDistance,
-					(((selectionStartY - worldPosY % lineDistance)/ lineDistance) * lineDistance) + worldPosY % lineDistance,
-					(((GetMouseX() - worldPosX % lineDistance)/ lineDistance + 1) * lineDistance) + worldPosX % lineDistance,
-					(((GetMouseY() - worldPosY % lineDistance)/ lineDistance + 1) * lineDistance) + worldPosY % lineDistance
-				);
-
-			}
-			if (IsKeyDown(KEY_C) && IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
-				newCopy = 0;
-
-				if (selectedArea != NULL) {
-					free(selectedArea);
+			if (IsKeyDown(KEY_C) && newCopy && insert) {
+				if (selectionStartX < GetMouseX() && selectionStartY < GetMouseY()) {
+					drawSelectionRect(
+						(((selectionStartX - worldPosX % lineDistance)/ lineDistance) * lineDistance) + worldPosX % lineDistance,
+						(((selectionStartY - worldPosY % lineDistance)/ lineDistance) * lineDistance) + worldPosY % lineDistance,
+						(((GetMouseX() - worldPosX % lineDistance)/ lineDistance + 1) * lineDistance) + worldPosX % lineDistance,
+						(((GetMouseY() - worldPosY % lineDistance)/ lineDistance + 1) * lineDistance) + worldPosY % lineDistance
+					);
 				}
 
-				selectedArea = copySelectionArea(selectionStartX, selectionStartY, 
-							   GetMouseX(), GetMouseY(), firstChunk, &selectionSizeX, 
-							   &selectionSizeY, worldPosX, worldPosY, lineDistance);
+			}
+			if (IsKeyDown(KEY_C) && IsMouseButtonReleased(MOUSE_LEFT_BUTTON) && insert) {
+				if (selectionStartX < GetMouseX() && selectionStartY < GetMouseY()) {
+					newCopy = 0;
 
+					if (selectedArea != NULL) {
+						free(selectedArea);
+					}
+
+					selectedArea = copySelectionArea(selectionStartX, selectionStartY, 
+								   GetMouseX(), GetMouseY(), firstChunk, &selectionSizeX, 
+								   &selectionSizeY, worldPosX, worldPosY, lineDistance);
+				}
 				
 			}
 			if (IsKeyDown(KEY_V) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
