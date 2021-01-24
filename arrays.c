@@ -20,12 +20,13 @@ void printInfo (Chunk chunk) {
 	
 	printf("%d count of tested cells\n", chunk.cellsToTestCount);
 	for (i = 0; i < chunk.cellsToTestCount; ++i) {
-		printf("\tx: %d, y: %d\n ", chunk.cellsToTest[i][0], chunk.cellsToTest[i][1]);
+		printf("\tx: %d, y: %d \talive: %d\n", chunk.cellsToTest[i][0], chunk.cellsToTest[i][1], 
+											chunk.cells[chunk.cellsToTest[i][0]][chunk.cellsToTest[i][1]].alive);
 	}
 	printf("\n\n");
 
 }
-void initialTestedCells (Chunk * chunk) {
+void initialTestedCells (Chunk * chunk, DrawnChunk *drawnVersion) {
 	int i, x, y, cellIndex; 
 	int searchArr[2];
 	cellIndex = chunk->cellsToTestCount;
@@ -36,6 +37,11 @@ void initialTestedCells (Chunk * chunk) {
 				searchArr[0] = chunk->cellsToTest[i][0] + x;
 				searchArr[1] = chunk->cellsToTest[i][1] + y;
 				if (searchArr[0] >= 0 && searchArr[0] <= ARR_SIZE - 1 && searchArr[1] >= 0 && searchArr[1] <= ARR_SIZE - 1) {
+					if (chunk->cells[searchArr[1]][searchArr[0]].alive) {
+						drawnVersion->cellCoords[drawnVersion->cellCount].x = searchArr[0];
+						drawnVersion->cellCoords[drawnVersion->cellCount].y = searchArr[1];
+						drawnVersion->cellCount += 1;
+					}
 					if (!found(searchArr, chunk->cellsToTest, chunk->cellsToTestCount)) {
 						chunk->cellsToTest[chunk->cellsToTestCount][0] = chunk->cellsToTest[i][0] + x;
 						chunk->cellsToTest[chunk->cellsToTestCount][1] = chunk->cellsToTest[i][1] + y;
@@ -47,6 +53,8 @@ void initialTestedCells (Chunk * chunk) {
 			}
 		}
 	}
+	drawnVersion->x = chunk->coord[0];
+	drawnVersion->y = chunk->coord[1];
 }
 void testAliveNeighbors (Chunk * chunk, Chunk ** lastChunk, Chunk * firstChunk, int *renderedChunkCount) {
 	int i, x, y, alive, xCoord, yCoord;
@@ -76,7 +84,7 @@ void testAliveNeighbors (Chunk * chunk, Chunk ** lastChunk, Chunk * firstChunk, 
 	}
 }
 
-int cellAliveState (Chunk * chunk) {
+int cellAliveState (Chunk * chunk, DrawnChunk * drawnVersion) {
 	int i, x, y, aliveNeighbors, tempArrayIndex, xCoord, yCoord, aliveCount;
 	int elementToSearch[2];
 	//Do smarter memory allocation
@@ -96,7 +104,12 @@ int cellAliveState (Chunk * chunk) {
 		} else {
 			chunk->cells[yCoord][xCoord].alive = 0;
 		}
+		chunk->cells[yCoord][xCoord].aliveNeighbors = 0;
 		if (chunk->cells[yCoord][xCoord].alive) {
+			drawnVersion->cellCoords[drawnVersion->cellCount].x = xCoord;
+			drawnVersion->cellCoords[drawnVersion->cellCount].y = yCoord;
+			drawnVersion->cellCount += 1;
+
 			++aliveCount;
 			for (x = -1; x <= 1; x++) {
 				for (y = -1; y <= 1; ++y) {
@@ -111,11 +124,11 @@ int cellAliveState (Chunk * chunk) {
 					}
 				}
 			}
-		} else {
-			chunk->cells[yCoord][xCoord].aliveNeighbors = 0;
 		}
 	}
-	//printInfo(*chunk);
+	// printInfo(*chunk);
+	drawnVersion->x = chunk->coord[0];	
+	drawnVersion->y = chunk->coord[1];	
 	copyArray(chunk, tempArray);
 	chunk->cellsToTestCount = tempArrayIndex;
 	return aliveCount;

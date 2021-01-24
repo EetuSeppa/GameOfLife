@@ -2,6 +2,29 @@
 #define HELP_H_
 #define ARR_SIZE 50
 
+#include <pthread.h>
+
+pthread_t aliveStateUpdateThread;
+pthread_mutex_t chunkUpdateMutex;
+pthread_cond_t chunkUpdateCond;
+int drawingCompleteBool;
+
+pthread_mutex_t threadStartTimingMutex;
+pthread_cond_t threadStartTimingCond;
+int initialMutexLockBool;
+
+typedef struct coord {
+	int x, y;
+} Coord;
+
+typedef struct drawnChunk {
+	struct drawnChunk * nextChunk;
+	Coord cellCoords[ARR_SIZE * ARR_SIZE];
+	int cellCount;
+	int x, y; //Position of chunk in world
+
+} DrawnChunk;
+
 typedef struct neighChunkCoords {
 	int neighChunkCoords[3][2];
 	int neighCellsInNeighChunks[3][3][2];
@@ -16,8 +39,7 @@ typedef struct neighChunkStruct {
 } NeighChunkStruct;
 
 typedef struct cell {
-	//1 for alive, 0 for dead
-	int alive;
+	int alive;	//1 for alive, 0 for dead
 	int aliveNeighbors;
 
 

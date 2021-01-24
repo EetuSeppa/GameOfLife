@@ -5,16 +5,17 @@
 #include "raylib.h"
 #include "arrays.h"
 #include "helpers.h"
+#include <pthread.h>
+#include "aliveStateUpdate.h"
 
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 700
 #define INITIAL_GRID_WIDTH 15
-#define CHUNK_UPDATE_RATE 1
+#define CHUNK_UPDATE_RATE 5
+#define FRAME_RATE 60
+
 
 void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {		
-
-	//Chunk *renderedChunks[50];
-
 
 	int lineDistance, i, j, k, drawnPosX, drawnPosY, mouseRClickX, mouseRClickY, rectPosX, rectPosY;
 	long long int worldPosX, worldPosY;
@@ -28,13 +29,15 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 	Chunk * firstChunk, * lastChunk, * curChunk, * previousChunk;
 	int * selectedArea;
 
+	ThreadArgs argsForAliveStateUpdate;
+
 	selectedArea = NULL;
 	lineDistance = INITIAL_GRID_WIDTH;
 
 	InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Game Of Life");
 	initGlobalVariable();
 
-	SetTargetFPS(60);
+	SetTargetFPS(FRAME_RATE);
 	insert = 1;
 	mouseOffsetX = mouseOffsetY = 0;
 	prevMouseOffsetX = prevMouseOffsetY = 0;
@@ -45,7 +48,20 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 	renderedChunkCount = 0;
 	newCopy = 0;
 	gridDrawnBool = 1;
+	firstChunk = NULL;
+	initialMutexLockBool = 0;
 
+
+	//Declare pointers for current, previous and next linked lists. These will be passed between threads
+	//Current presents thread that is currently drawn
+	//Next presents linked list of next generation that has been updated by aliveStateThread
+	//Current pointer will be assigned to previous before being replaced by next.
+	//Previous linked list will get freed by aliveStateThread
+	DrawnChunk *curFirstDrawnChunk, *previousFirstDrawnChunk, *nextFirstDrawnChunk;	
+	DrawnChunk *currentDrawnChunk;
+
+
+	previousFirstDrawnChunk = curFirstDrawnChunk = NULL;
 	if (chunkList != NULL) {
 		firstChunk = chunkList;
 		lastChunk = lastChunkOfList;
@@ -117,12 +133,40 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 			if (IsKeyPressed(32) && insert){
 				insert = 0;
 				curChunk = firstChunk;
-				 while (1) {
-					initialTestedCells(curChunk);
-					if (curChunk->nextChunk != NULL)
+				currentDrawnChunk = malloc(sizeof(DrawnChunk));
+				curFirstDrawnChunk = currentDrawnChunk;
+
+				while (1) {
+					currentDrawnChunk->cellCount = 0;
+					initialTestedCells(curChunk, currentDrawnChunk);
+					if (curChunk->nextChunk != NULL) {
 						curChunk = curChunk->nextChunk;
-					else
+						currentDrawnChunk->nextChunk  = malloc(sizeof(DrawnChunk));
+						currentDrawnChunk = currentDrawnChunk->nextChunk;
+					} else {
+						currentDrawnChunk->nextChunk = NULL;
 						break;
+					}
+				}
+
+				//Create a thread for updating alive states here
+				//Possible race condition needs to be addressed
+				argsForAliveStateUpdate.firstChunk = firstChunk;
+				argsForAliveStateUpdate.lastChunk = &lastChunk;
+				argsForAliveStateUpdate.renderedChunkCount = &renderedChunkCount;
+				argsForAliveStateUpdate.previousFirstDrawnChunk = &previousFirstDrawnChunk;
+				argsForAliveStateUpdate.nextFirstDrawnChunk = &nextFirstDrawnChunk;
+
+				pthread_cond_init(&chunkUpdateCond, NULL);
+				pthread_mutex_init(&chunkUpdateMutex, NULL);
+
+				pthread_cond_init(&threadStartTimingCond, NULL); //Mutex and condition variable to make sure second thread locks before drawing thread
+				pthread_mutex_init(&threadStartTimingMutex, NULL);
+
+				pthread_mutex_lock(&threadStartTimingMutex);
+				pthread_create(&aliveStateUpdateThread, NULL, &aliveStateThread, &argsForAliveStateUpdate);
+				while (!initialMutexLockBool) {
+					pthread_cond_wait(&threadStartTimingCond, &threadStartTimingMutex);
 				}
 			}
 			if (insert) {
@@ -169,31 +213,19 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 				}
 			} else {
 				if (frameCounter == CHUNK_UPDATE_RATE) {
-					curChunk = firstChunk;
-					while (1) {
-						testAliveNeighbors(curChunk, &lastChunk, firstChunk, &renderedChunkCount);
+					if (pthread_mutex_trylock(&chunkUpdateMutex) == 0) {
+						//copy coordinates to array of coords
+						if (nextFirstDrawnChunk != NULL) {
+							previousFirstDrawnChunk = curFirstDrawnChunk;
+							curFirstDrawnChunk = nextFirstDrawnChunk;
 
-						if (curChunk->nextChunk != NULL) 
-							curChunk = curChunk->nextChunk;
-						else
-							break;
-					} 
-					curChunk = firstChunk;
-					previousChunk = NULL;
-					while (1) {
-						if ((cellAliveState(curChunk)) == 0) { //If cell has zero alive cells free it from list
-							if (previousChunk != NULL && curChunk->nextChunk != NULL) {  //Keep middle chunk in memory
-								previousChunk->nextChunk = curChunk->nextChunk;
-								free(curChunk);
-								curChunk = previousChunk->nextChunk;
-								continue;
-							}
 						}
-						if (curChunk->nextChunk != NULL) {
-							previousChunk = curChunk;
-							curChunk = curChunk->nextChunk;
-						} else 	 { break; }
-					} 
+
+						drawingCompleteBool = 1;
+						pthread_mutex_unlock(&chunkUpdateMutex);
+						pthread_cond_signal(&chunkUpdateCond);
+						
+					}
 					--frameCounter;
 					//getchar();	
 				} else {
@@ -204,24 +236,48 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 				}
 			}
 
-			if (renderedChunkCount > 0) {
-				curChunk = firstChunk;
-				 do {
-					for (j = 0; j < curChunk->cellsToTestCount; ++j) {
-							//TODO: only render if coords are inside screen
-							curChunk->cells[curChunk->cellsToTest[j][1]][curChunk->cellsToTest[j][0]].aliveNeighbors = 0;
-							if (curChunk->cells[curChunk->cellsToTest[j][1]][curChunk->cellsToTest[j][0]].alive) {
-								rectX = (lineDistance * ARR_SIZE * curChunk->coord[0]) + worldPosX + curChunk->cellsToTest[j][0] * lineDistance;
-								rectY = (lineDistance * ARR_SIZE * curChunk->coord[1]) + worldPosY + curChunk->cellsToTest[j][1] * lineDistance;
+			 	if (insert) {
+					curChunk = firstChunk;
+				 	do {
+						if (firstChunk != NULL) {
+							for (j = 0; j < curChunk->cellsToTestCount; ++j) {
+								//TODO: only render if coords are inside screen
+								curChunk->cells[curChunk->cellsToTest[j][1]][curChunk->cellsToTest[j][0]].aliveNeighbors = 0;
+								if (curChunk->cells[curChunk->cellsToTest[j][1]][curChunk->cellsToTest[j][0]].alive) {
+									rectX = (lineDistance * ARR_SIZE * curChunk->coord[0]) + worldPosX + curChunk->cellsToTest[j][0] * lineDistance;
+									rectY = (lineDistance * ARR_SIZE * curChunk->coord[1]) + worldPosY + curChunk->cellsToTest[j][1] * lineDistance;
+									DrawRectangle(rectX, rectY, lineDistance, lineDistance, GRAY);
+					 			}
+							}
+							if (curChunk->nextChunk != NULL)
+								curChunk = curChunk->nextChunk;
+							else 
+								break;
+						} else {
+							break;
+						}
+					} while (1);
+
+				} else {
+					if (curFirstDrawnChunk != NULL) {
+						currentDrawnChunk = curFirstDrawnChunk;
+						do {
+							for (j = 0; j < currentDrawnChunk->cellCount; ++j) {
+								rectX = (lineDistance * ARR_SIZE * currentDrawnChunk->x) + worldPosX + currentDrawnChunk->cellCoords[j].x * lineDistance;
+								rectY = (lineDistance * ARR_SIZE * currentDrawnChunk->y) + worldPosY + currentDrawnChunk->cellCoords[j].y * lineDistance;
 								DrawRectangle(rectX, rectY, lineDistance, lineDistance, GRAY);
-				 			}
+
+							}
+							if (currentDrawnChunk->nextChunk != NULL) {
+								currentDrawnChunk = currentDrawnChunk->nextChunk;
+							} else {
+								break;
+							}
+						} while (1);
 					}
-					if (curChunk->nextChunk != NULL)
-						curChunk = curChunk->nextChunk;
-					else 
-						break;
-				} while (1);
-			}
+				}
+
+
 			if (IsKeyPressed(KEY_G)) {
 				gridDrawnBool = !gridDrawnBool;	
 			}
