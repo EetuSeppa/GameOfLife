@@ -7,6 +7,8 @@
 #include "helpers.h"
 #include <pthread.h>
 #include "aliveStateUpdate.h"
+#include <math.h>
+
 
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 700
@@ -25,7 +27,7 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 	int selectionStartX, selectionStartY, newCopy, selectionSizeX, selectionSizeY;
 	int gridDrawnBool;
 	int coordToFind[2];
-	double zoom;
+	int zoom;
 	Chunk * firstChunk, * lastChunk, * curChunk, * previousChunk;
 	int * selectedArea;
 
@@ -43,7 +45,6 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 	prevMouseOffsetX = prevMouseOffsetY = 0;
 	mouseOffsetPerFrameX = mouseOffsetPerFrameY = 0;
 	worldPosX = worldPosY = 0;
-	zoom = 1.000;
 	frameCounter = CHUNK_UPDATE_RATE;
 	renderedChunkCount = 0;
 	newCopy = 0;
@@ -74,8 +75,8 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 		
 
 		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !IsKeyDown(KEY_C)) {
-			initMouseX = GetMouseX() - worldPosX;
-			initMouseY = GetMouseY() - worldPosY;
+			initMouseX = GetMouseX();
+			initMouseY = GetMouseY();
 		}
 		if (IsMouseButtonDown(MOUSE_LEFT_BUTTON) && !IsKeyDown(KEY_C)) {
 			prevMouseOffsetX = mouseOffsetX;
@@ -87,6 +88,8 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 		}
 		if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON) && !IsKeyDown(KEY_C)) {
 			mouseOffsetPerFrameX = mouseOffsetPerFrameY = 0;
+			prevMouseOffsetX = prevMouseOffsetY = 0;
+			mouseOffsetX = mouseOffsetY = 0;
 		}
 		if (IsKeyDown(KEY_C) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
 			selectionStartX = GetMouseX();
@@ -95,14 +98,17 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 		}
 
 		
-		zoom = GetMouseWheelMove();
-		lineDistance -= (int)zoom;
-		if (lineDistance < 1) {
-			lineDistance = 1;
+		if ((zoom = GetMouseWheelMove()) != 0) {
+			zoom = zoom/abs(zoom); //Round zoom value to negative or positive one
+			lineDistance -= zoom;
 		}
-		if (lineDistance <= 2) {
+		if (lineDistance <= 1) {
 			gridDrawnBool = 0;
-
+			lineDistance = 1;
+			zoom = 0;
+		} else if (lineDistance >= 100) {
+			lineDistance = 100;
+			zoom = 0;
 		}
 
 
@@ -111,6 +117,11 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 			ClearBackground(RAYWHITE);
 			worldPosX += mouseOffsetPerFrameX;
 			worldPosY += mouseOffsetPerFrameY; 
+
+			if (zoom != 0) {
+				worldPosX -= (((GetMouseX() - worldPosX)) / (lineDistance)) * -zoom;
+				worldPosY -= (((GetMouseY() - worldPosY)) / (lineDistance)) * -zoom;
+			}
 
 
 			drawnPosX = worldPosX % lineDistance; 

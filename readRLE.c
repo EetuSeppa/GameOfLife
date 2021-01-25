@@ -30,8 +30,8 @@ Chunk * readRLEFile (char fileName[], Chunk ** lastChunkOfList) {
 	cellPosX = cellPosY = chunkPosX = chunkPosY = 0;
 
 	firstChunk = malloc(sizeof(Chunk));
-	firstChunk->coord[0] = chunkPosX;
-	firstChunk->coord[1] = chunkPosY;
+	firstChunk->x = chunkPosX;
+	firstChunk->y = chunkPosY;
 	firstChunk->cellsToTestCount = 0;
 	initializeZeroArray(firstChunk->cells);
 	firstChunk->nextChunk = NULL;
@@ -46,7 +46,6 @@ Chunk * readRLEFile (char fileName[], Chunk ** lastChunkOfList) {
 	FILE *fp = fopen(fileName, "r");	
 
 	fgets(line, 100, fp);
-	putchar('\n');
 	while (feof(fp) == 0) {
 		i = 0;
 		while (typeToken != '!') {
