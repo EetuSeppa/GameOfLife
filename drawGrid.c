@@ -30,6 +30,8 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 	int zoom;
 	Chunk * firstChunk, * lastChunk, * curChunk, * previousChunk;
 	int * selectedArea;
+	int zoomStartPosX, zoomStartPosY, zoomEndPosX, zoomEndPosY;
+	float zoomAmount, zoomDelta;
 
 	ThreadArgs argsForAliveStateUpdate;
 
@@ -51,6 +53,7 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 	gridDrawnBool = 1;
 	firstChunk = NULL;
 	initialMutexLockBool = 0;
+	zoomAmount = 1;
 
 
 	//Declare pointers for current, previous and next linked lists. These will be passed between threads
@@ -98,19 +101,6 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 		}
 
 		
-		if ((zoom = GetMouseWheelMove()) != 0) {
-			zoom = zoom/abs(zoom); //Round zoom value to negative or positive one
-			lineDistance -= zoom;
-		}
-		if (lineDistance <= 1) {
-			gridDrawnBool = 0;
-			lineDistance = 1;
-			zoom = 0;
-		} else if (lineDistance >= 100) {
-			lineDistance = 100;
-			zoom = 0;
-		}
-
 
 		BeginDrawing();
 			
@@ -118,9 +108,22 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 			worldPosX += mouseOffsetPerFrameX;
 			worldPosY += mouseOffsetPerFrameY; 
 
-			if (zoom != 0) {
-				worldPosX -= (((GetMouseX() - worldPosX)) / (lineDistance)) * -zoom;
-				worldPosY -= (((GetMouseY() - worldPosY)) / (lineDistance)) * -zoom;
+			if ((zoom = GetMouseWheelMove()) != 0) {
+				if (zoom > 0)
+					zoomDelta = 0.8;
+				else
+					zoomDelta = 1.2;
+
+				zoomAmount *= zoomDelta;
+				if (zoomAmount > 20) {
+					zoomAmount = 20;	
+				} else if (zoomAmount < 0.2) {
+					gridDrawnBool = 0;
+					zoomAmount = 0.2;
+				}
+
+				lineDistance = zoomAmount * INITIAL_GRID_WIDTH;
+
 			}
 
 
