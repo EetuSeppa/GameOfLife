@@ -92,10 +92,12 @@ int cellAliveState (Chunk * chunk, DrawnChunk * drawnVersion) {
 	tempArrayIndex = 0;
 
 	aliveCount = 0;
+//	printf("Chunk %d, %d\n", chunk->x, chunk->y);
 	for (i = 0; i < chunk->cellsToTestCount; ++i) {
 		xCoord = chunk->cellsToTest[i][0];
 		yCoord = chunk->cellsToTest[i][1];
 		aliveNeighbors = chunk->cells[yCoord][xCoord].aliveNeighbors;
+	//	printf("\t%d\t%d, %d alive: %d\n", i, xCoord, yCoord, aliveNeighbors);
 
 		if(chunk->cells[yCoord][xCoord].alive && (aliveNeighbors == 2 || aliveNeighbors == 3)) {
 			chunk->cells[yCoord][xCoord].alive = 1;
@@ -126,7 +128,7 @@ int cellAliveState (Chunk * chunk, DrawnChunk * drawnVersion) {
 			}
 		}
 	}
-	// printInfo(*chunk);
+	//printInfo(*chunk);
 	drawnVersion->x = chunk->x;	
 	drawnVersion->y = chunk->y;	
 	copyArray(chunk, tempArray);
@@ -139,113 +141,80 @@ void copyArray (Chunk * chunk, int arr[][2]) {
 }
 
 void chunkCollision (Chunk * chunk, Chunk ** lastChunk, Chunk * firstChunk, int cellXCoord, int cellYCoord, int *renderedChunkCount) {
-
-	if (cellXCoord == 0 && cellYCoord == 0) { 					//Top-left corner
-		addAliveStatesToNeighbors(collisionNeighbor->upLeft.neighChunkCoords, 
-		collisionNeighbor->upLeft.neighCellsInNeighChunks,
-		collisionNeighbor->upLeft.neighChunkCount,
-		chunk, cellXCoord, cellYCoord, firstChunk, lastChunk, renderedChunkCount);
-	} else if (cellXCoord == ARR_SIZE - 1 && cellYCoord == 0) {	//Top-right corner
-		addAliveStatesToNeighbors(collisionNeighbor->upRight.neighChunkCoords, 
-		collisionNeighbor->upRight.neighCellsInNeighChunks,
-		collisionNeighbor->upRight.neighChunkCount,
-		chunk, cellXCoord, cellYCoord, firstChunk, lastChunk, renderedChunkCount);
-
-	} else if (cellXCoord == 0 && cellYCoord == ARR_SIZE - 1) {				//Bottom-left corner
-		addAliveStatesToNeighbors(collisionNeighbor->downLeft.neighChunkCoords, 
-		collisionNeighbor->downLeft.neighCellsInNeighChunks,
-		collisionNeighbor->downLeft.neighChunkCount,
-		chunk, cellXCoord, cellYCoord, firstChunk, lastChunk, renderedChunkCount);
-
-	} else if (cellXCoord == ARR_SIZE - 1 && cellYCoord == ARR_SIZE - 1) {	//Bottom-right corner
-		addAliveStatesToNeighbors(collisionNeighbor->downRight.neighChunkCoords, 
-		collisionNeighbor->downRight.neighCellsInNeighChunks,
-		collisionNeighbor->downRight.neighChunkCount,
-		chunk, cellXCoord, cellYCoord, firstChunk, lastChunk, renderedChunkCount);
-
-	} else if (cellYCoord == 0) { 											//Top edge, mark shorter array with -2 for later processing
-		addAliveStatesToNeighbors(collisionNeighbor->up.neighChunkCoords, 
-		collisionNeighbor->up.neighCellsInNeighChunks,
-		collisionNeighbor->up.neighChunkCount,
-		chunk, cellXCoord, cellYCoord, firstChunk, lastChunk, renderedChunkCount);
-			
-
-	} else if (cellXCoord == ARR_SIZE - 1) { 					//Right edge
-		addAliveStatesToNeighbors(collisionNeighbor->right.neighChunkCoords, 
-		collisionNeighbor->right.neighCellsInNeighChunks,
-		collisionNeighbor->right.neighChunkCount,
-		chunk, cellXCoord, cellYCoord, firstChunk, lastChunk, renderedChunkCount);
-
-	} else if (cellYCoord == ARR_SIZE - 1) { 						//Bottom edge
-		addAliveStatesToNeighbors(collisionNeighbor->down.neighChunkCoords, 
-		collisionNeighbor->down.neighCellsInNeighChunks,
-		collisionNeighbor->down.neighChunkCount,
-		chunk, cellXCoord, cellYCoord, firstChunk, lastChunk, renderedChunkCount);
-
-	} else if (cellXCoord == 0) { 								//Left edge
-		addAliveStatesToNeighbors(collisionNeighbor->left.neighChunkCoords, 
-		collisionNeighbor->left.neighCellsInNeighChunks,
-		collisionNeighbor->left.neighChunkCount,
-		chunk, cellXCoord, cellYCoord, firstChunk, lastChunk, renderedChunkCount);
-
-	}
-}
-
-void addAliveStatesToNeighbors (int neighborChunkCoords[3][2], int cellCoordsInNeighbors[3][3][2], 
-		int neighborChunkCount, Chunk * chunk, int cellXCoord, int cellYCoord, 
-		Chunk * firstChunk, Chunk ** lastChunk, int *renderedChunkCount) 
-{
-	int chunkXCoord, chunkYCoord, renderedChunkIndex, i, j, x, y, xCoordOfNeigh, yCoordOfNeigh;	
-
+	int curChunkCoordX, curChunkCoordY, curIndexX, curIndexY;
+	int i, j;
+	int searchElement[2];
 	int coordToFind[2];
-	int neighborCoordsDest[3][2];
-	int cellCoordsDest[3][3][2];
-	int curChunkNeighborCoords[5][2];
+	int diffChunkBool; //1 if cell is in neighbor, 0 otherwise
+	int cellTestCount;
+	Chunk *neighborChunk;
 
-	Chunk * curChunk;
+	for (i = -1; i <= 1; ++i) {
+		for (j = -1; j <= 1; ++j) {
+			diffChunkBool = 0;
+			searchElement[0] = chunk->x;
+			searchElement[1] = chunk->y;
+			
+			curIndexX = cellXCoord + i;
+			curIndexY = cellYCoord + j;
 
-	chunkXCoord = chunk->x;
-	chunkYCoord = chunk->y;
-	for (i = 0; i < neighborChunkCount; ++i) {
-		coordToFind[0] = chunk->x + neighborChunkCoords[i][0];
-		coordToFind[1] = chunk->y + neighborChunkCoords[i][1];
-
-		if ((curChunk = findIndex(coordToFind, firstChunk)) == NULL) {
-			curChunk = renderChunk(lastChunk, coordToFind[0], coordToFind[1]);
-			*renderedChunkCount += 1;
-		}
-		//Add alive states of neighbor chunk cells
-		for (j = 0; j < 5; ++j) {
-			if (cellCoordsInNeighbors[i][j][0] == -ARR_SIZE - 2) {
-				break;
+			//If x index is outside of range, find correct chunk and edit index
+			if (curIndexX < 0) {
+				searchElement[0] -= 1;	
+				diffChunkBool = 1;
+				curIndexX = ARR_SIZE - 1;
+			} else if (curIndexX > ARR_SIZE - 1) {
+				searchElement[0] += 1;	
+				diffChunkBool = 1;
+				curIndexX = 0;
 			}
-			xCoordOfNeigh = cellXCoord + cellCoordsInNeighbors[i][j][0];
-			yCoordOfNeigh = cellYCoord + cellCoordsInNeighbors[i][j][1];
-			if(chunk->cells[cellYCoord][cellXCoord].alive) {
-				coordToFind[0] = xCoordOfNeigh;
-				coordToFind[1] = yCoordOfNeigh;
-				if (!(found(coordToFind, curChunk->cellsToTest, curChunk->cellsToTestCount))) {
-					curChunk->cellsToTest[curChunk->cellsToTestCount][0] = xCoordOfNeigh;	
-					curChunk->cellsToTest[curChunk->cellsToTestCount][1] = yCoordOfNeigh;	
-					curChunk->cellsToTestCount += 1;
+
+
+			//Same logic for y index
+			if (curIndexY < 0) {
+				searchElement[1] -= 1;	
+				diffChunkBool = 1;
+				curIndexY = ARR_SIZE - 1;
+			} else if (curIndexY > ARR_SIZE - 1) {
+				searchElement[1] += 1;	
+				diffChunkBool = 1;
+				curIndexY = 0;
+			}
+
+
+			if (diffChunkBool) {
+				if (chunk->cells[cellYCoord][cellXCoord].alive) {
+					
+					//If neighbor chunk is not in memory, call function to allocate and insert to list
+					if ((neighborChunk = findIndex(searchElement, firstChunk)) == NULL) {
+						neighborChunk = renderChunk(lastChunk, searchElement[0], searchElement[1]);
+						*renderedChunkCount += 1;
+					}
+
+					
+					coordToFind[0] = curIndexX;
+					coordToFind[1] = curIndexY;
+
+					if (!(found(coordToFind, neighborChunk->cellsToTest, neighborChunk->cellsToTestCount))) {
+						cellTestCount = neighborChunk->cellsToTestCount;
+						neighborChunk->cellsToTest[cellTestCount][0] = curIndexX;
+						neighborChunk->cellsToTest[cellTestCount][1] = curIndexY;
+						neighborChunk->cellsToTestCount += 1;
+					}
+
+					neighborChunk->cells[curIndexY][curIndexX].aliveNeighbors += 1;
+
 				}
-				curChunk->cells[yCoordOfNeigh][xCoordOfNeigh].aliveNeighbors += 1;	
-			}
-		}
-	}
-	//Add alive states of current chunk cells
-	for (x = -1; x <= 1; ++x) {
-		for (y = -1; y <= 1; ++y) {
-			if (cellXCoord + x >= 0 && cellXCoord + x <= ARR_SIZE - 1 && 
-				cellYCoord + y >= 0 && cellYCoord + y <= ARR_SIZE - 1) {
-
-				if (chunk->cells[cellYCoord + y][cellXCoord + x].alive) {
+			} else {
+				if (chunk->cells[curIndexY][curIndexX].alive) {
 					chunk->cells[cellYCoord][cellXCoord].aliveNeighbors += 1;
 				}
+
 			}
 		}
 	}
 	if (chunk->cells[cellYCoord][cellXCoord].alive) {
 		chunk->cells[cellYCoord][cellXCoord].aliveNeighbors -= 1;
 	}
+
 }

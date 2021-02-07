@@ -25,19 +25,6 @@ typedef struct drawnChunk {
 
 } DrawnChunk;
 
-typedef struct neighChunkCoords {
-	int neighChunkCoords[3][2];
-	int neighCellsInNeighChunks[3][3][2];
-	int neighChunkCount;
-
-} NeighChunkCoords;
-
-typedef struct neighChunkStruct {
-	NeighChunkCoords upLeft, upRight, downLeft, downRight, left, up, right, down;
-
-
-} NeighChunkStruct;
-
 typedef struct cell {
 	int alive;	//1 for alive, 0 for dead
 	int aliveNeighbors;

@@ -13,7 +13,7 @@
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 700
 #define INITIAL_GRID_WIDTH 15
-#define CHUNK_UPDATE_RATE 5
+#define CHUNK_UPDATE_RATE 20
 #define FRAME_RATE 60
 
 
@@ -241,7 +241,7 @@ void drawGrid (Chunk * chunkList, Chunk * lastChunkOfList) {
 						
 					}
 					--frameCounter;
-					//getchar();	
+					getchar();	 //remove comment for step-by-step debug
 				} else {
 					--frameCounter;
 					if (frameCounter <= 0) {

@@ -5,7 +5,7 @@
 #include "raylib.h"
 #include <math.h>
 
-//Need a faster way of searching, perhaps sorting first and then binary searching for x coordinate
+//Horribly inefficient. TODO: Binary search for x coordinate and insert in order
 int found (int elementToSearch[], int arr[][2], int limit) {
 	int i, found;	
 	found = 0;
@@ -20,7 +20,8 @@ int found (int elementToSearch[], int arr[][2], int limit) {
 
 	return found;
 }
-//Return null pointer if not found
+
+//Return null pointer if not found in linked list of chunks in memory
 Chunk * findIndex (int elementToSearch[], Chunk * firstChunk) {
 	Chunk * curChunk;
 	
@@ -234,88 +235,3 @@ void drawSelectionRect (int x1, int y1, int x2, int y2) {
 
 }
 
-void initializeNeighborCoords (NeighChunkStruct **copyDest) {
-	*copyDest = malloc(sizeof(NeighChunkStruct));
-
-	NeighChunkStruct neighCoords = { 
-		.upLeft = { 
-			.neighChunkCoords = {{0, -1}, {-1, 0}, {-1, -1}},
-			.neighCellsInNeighChunks = {{{0, ARR_SIZE - 1}, {1, ARR_SIZE - 1}, 
-		    {-ARR_SIZE - 2, -ARR_SIZE - 2}}, 
-			{{ARR_SIZE - 1, 0}, {ARR_SIZE - 1, 1}, 
-			{-ARR_SIZE - 2, -ARR_SIZE - 2}}, 
-			{{ARR_SIZE - 1, ARR_SIZE - 1}, 
-			{-ARR_SIZE - 2, -ARR_SIZE - 2}}},
-			.neighChunkCount = 3
-		},
-
-		 .upRight = { 
-		 	.neighChunkCoords = {{0, -1}, {1, -1}, {1, 0}},
-			.neighCellsInNeighChunks = {{{0, ARR_SIZE - 1}, {-1, ARR_SIZE - 1}, 
-			{-ARR_SIZE - 2, -ARR_SIZE - 2}}, 
-			{{-ARR_SIZE + 1, ARR_SIZE - 1}, 
-			{-ARR_SIZE - 2, -ARR_SIZE - 2}}, 
-			{{-ARR_SIZE + 1, 0}, 
-			{-ARR_SIZE + 1, 1}, 
-			{-ARR_SIZE - 2, -ARR_SIZE - 2}}},
-			.neighChunkCount = 3
-	},
-
-
-		 .downLeft = { 
-		 	.neighChunkCoords = {{0, 1}, {-1, 1}, {-1, 0}},
-			.neighCellsInNeighChunks = {{{0, -ARR_SIZE + 1}, {1, -ARR_SIZE + 1}, 
-			{-ARR_SIZE - 2, -ARR_SIZE - 2}}, 
-			{{ARR_SIZE - 1, -ARR_SIZE + 1}, 
-			{-ARR_SIZE - 2, -ARR_SIZE - 2}}, 
-			{{ARR_SIZE - 1, 0}, 
-			{ARR_SIZE - 1, -1}, 
-			{-ARR_SIZE - 2, -ARR_SIZE - 2}}},
-			.neighChunkCount = 3
-	},
-
-		 .downRight = { 
-		 	.neighChunkCoords = {{1, 0}, {1, 1}, {0, 1}},
-			.neighCellsInNeighChunks = {{{-ARR_SIZE + 1, 0}, {-ARR_SIZE + 1, - 1}, 
-			{-ARR_SIZE - 2, -ARR_SIZE - 2}}, 
-			{{-ARR_SIZE + 1, -ARR_SIZE + 1}, 
-			{-ARR_SIZE - 2, -ARR_SIZE - 2}}, 
-			{{0, -ARR_SIZE + 1}, 
-			{-1, -ARR_SIZE + 1}, 
-			{-ARR_SIZE - 2, -ARR_SIZE - 2}}},
-			.neighChunkCount = 3
-	},
-
-		 .up = { 
-		 	.neighChunkCoords = {{0, -1}},
-			.neighCellsInNeighChunks = {{{-1, ARR_SIZE - 1}, {0, ARR_SIZE - 1}, 
-			{1, ARR_SIZE - 1}}, 
-			{{-ARR_SIZE - 2, -ARR_SIZE - 2}}},
-			.neighChunkCount = 1
-	},
-
-		 .right = { 
-		 	.neighChunkCoords = {{1, 0}},
-			.neighCellsInNeighChunks = {{{-ARR_SIZE + 1, -1}, {-ARR_SIZE + 1, 0}, 
-			{-ARR_SIZE + 1, 1}}, 
-			{{-ARR_SIZE - 2, -ARR_SIZE - 2}}},
-			.neighChunkCount = 1
-	},
-
-		 .down = { 
-		 	.neighChunkCoords = {{0, 1}},
-			.neighCellsInNeighChunks = {{{-1, -ARR_SIZE + 1}, {0, -ARR_SIZE + 1}, 
-			{1, -ARR_SIZE + 1}}, 
-			{{-ARR_SIZE - 2, -ARR_SIZE - 2}}},
-			.neighChunkCount = 1
-	},
-
-		 .left = { 
-		 	.neighChunkCoords = {{-1, 0}},
-			.neighCellsInNeighChunks = {{{ARR_SIZE - 1, -1}, {ARR_SIZE - 1, 0}, 
-			{ARR_SIZE - 1, 1}}, 
-			{{-ARR_SIZE - 2, -ARR_SIZE - 2}}},
-			.neighChunkCount = 1
-	}};
-	memcpy(*copyDest, &neighCoords, sizeof(NeighChunkStruct));
-}
