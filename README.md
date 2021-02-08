@@ -16,4 +16,4 @@ Improvements to be made:
   -Algorithm for finding if coordinate is already to be tested needs to be improved  
   -Code readability has to be improved  
 
-![](gameOfLifeDemo.gif)
+![](gameOfLIfeDemo.gif)
