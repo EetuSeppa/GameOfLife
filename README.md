@@ -15,5 +15,7 @@ Improvements to be made:
   -Zooming needs to pan in relation to mouse position  
   -Algorithm for finding if coordinate is already to be tested needs to be improved  
   -Code readability has to be improved  
+  
+If you happen to come across this repo, feedback is more than welcome!
 
 ![](gameOfLIfeDemo.gif)
